@@ -1,0 +1,148 @@
+<?php
+require_once __DIR__ . "/BaseDAO.php";
+require_once __DIR__ . "/../models/Category.php";
+
+class CategoryDAO extends BaseDAO
+{
+    public function __construct()
+    {
+        parent::__construct();
+    }
+    
+    public function getAll(): array
+    {
+        $list = [];
+        try {
+            $sql = "SELECT * FROM categories ORDER BY catename";
+            $result = $this->executeQuery($sql);
+
+            while ($row = $result->fetch_assoc()) {
+                $category = new Category(
+                    $row["catename"],
+                    $row["slug"],
+                    $row["image"],
+                    $row["description"],
+                    $row["status"]
+                );
+
+                $category->id = $row["id"];
+                $category->createdAt = $row["created_at"];
+                $category->updatedAt = $row["updated_at"];
+
+                $list[] = $category;
+            }
+        } catch (Exception $e) {
+            throw $e;
+        }
+
+        return $list;
+    }
+    public function count(): int
+    {
+        $sql = "SELECT COUNT(*) AS total FROM categories";
+        $result = $this->executeQuery($sql);
+        $row = $result->fetch_assoc();
+
+        return (int)$row["total"];
+    }
+
+    public function findById(int $id): ?Category
+    {
+        try {
+            $sql = "SELECT * FROM categories WHERE id=?";
+            $stmt = $this->prepare($sql);
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
+
+            $result = $stmt->get_result();
+
+            if ($row = $result->fetch_assoc()) {
+                $category = new Category(
+                    $row["catename"],
+                    $row["slug"],
+                    $row["image"],
+                    $row["description"],
+                    $row["status"]
+                );
+
+                $category->id = $row["id"];
+                $category->createdAt = $row["created_at"];
+                $category->updatedAt = $row["updated_at"];
+
+                return $category;
+            }
+        } catch (Exception $e) {
+            throw $e;
+        }
+
+        return null;
+    }
+
+    public function insert(Category $category): bool
+    {
+        try {
+            $sql = "INSERT INTO categories(catename, slug, image, description, status)
+                    VALUES(?, ?, ?, ?, ?)";
+
+            $stmt = $this->prepare($sql);
+
+            $stmt->bind_param(
+                "ssssi",
+                $category->catename,
+                $category->slug,
+                $category->image,
+                $category->description,
+                $category->status
+            );
+
+            return $stmt->execute();
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+
+    public function update(Category $category): bool
+    {
+        try {
+            $sql = "UPDATE categories
+                    SET
+                        catename=?,
+                        slug=?,
+                        image=?,
+                        description=?,
+                        status=?
+                    WHERE id=?";
+
+            $stmt = $this->prepare($sql);
+
+            $stmt->bind_param(
+                "ssssii",
+                $category->catename,
+                $category->slug,
+                $category->image,
+                $category->description,
+                $category->status,
+                $category->id
+            );
+
+            return $stmt->execute();
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+    public function delete(int $id): bool
+    {
+        try {
+            $sql = "DELETE FROM categories WHERE id=?";
+
+            $stmt = $this->prepare($sql);
+            $stmt->bind_param("i", $id);
+
+            return $stmt->execute();
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+}
