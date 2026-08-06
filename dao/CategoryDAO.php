@@ -37,6 +37,23 @@ class CategoryDAO extends BaseDAO
 
         return $list;
     }
+    public function paging($page, $pageSize)
+    {
+        $offset = ($page - 1) * $pageSize;
+
+        $sql = "SELECT * FROM categories
+                LIMIT $offset, $pageSize";
+
+        $result = $this->conn->query($sql);
+
+        $categories = [];
+
+        while ($row = $result->fetch_object()) {
+            $categories[] = $row;
+        }
+
+        return $categories;
+    }
     public function count(): int
     {
         $sql = "SELECT COUNT(*) AS total FROM categories";
@@ -100,6 +117,31 @@ class CategoryDAO extends BaseDAO
             throw $e;
         }
     }
+    public function search($keyword)
+    {
+        $sql = "SELECT *
+                FROM categories
+                WHERE catename LIKE ?
+                OR slug LIKE ?";
+
+        $stmt = $this->conn->prepare($sql);
+
+        $search = "%" . $keyword . "%";
+
+        $stmt->bind_param("ss", $search, $search);
+
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        $categories = [];
+
+        while ($row = $result->fetch_object()) {
+            $categories[] = $row;
+        }
+
+        return $categories;
+    }
 
 
     public function update(Category $category): bool
@@ -132,17 +174,27 @@ class CategoryDAO extends BaseDAO
         }
     }
 
-    public function delete(int $id): bool
+    public function delete($id)
     {
-        try {
-            $sql = "DELETE FROM categories WHERE id=?";
+        $sql = "SELECT COUNT(*) AS total
+                FROM products
+                WHERE category_id = ?";
 
-            $stmt = $this->prepare($sql);
-            $stmt->bind_param("i", $id);
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
 
-            return $stmt->execute();
-        } catch (Exception $e) {
-            throw $e;
+        $result = $stmt->get_result()->fetch_assoc();
+
+        if ($result["total"] > 0) {
+            return false;
         }
+
+        $sql = "DELETE FROM categories WHERE id = ?";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("i", $id);
+
+        return $stmt->execute();
     }
 }

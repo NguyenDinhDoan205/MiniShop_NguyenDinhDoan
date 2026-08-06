@@ -19,7 +19,7 @@
     <div class="container-fluid">
 
         <a class="navbar-brand" href="#">
-            Mini Shop
+            Admin Panel
         </a>
 
         <div class="ms-auto text-white">

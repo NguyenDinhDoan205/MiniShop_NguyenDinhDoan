@@ -9,19 +9,19 @@
 
     <div class="list-group list-group-flush">
 
-        <a href="dashboard.php"
-           class="list-group-item list-group-item-action active">
+       <a href="/MiniShop_NguyenDinhDoan/views/admin/dashboard.php"
+           class="list-group-item list-group-item-action bg-dark text-white border-secondary">
             <i class="bi bi-speedometer2 me-2"></i>
             Dashboard
         </a>
 
-        <a href="category.php"
+        <a href="/MiniShop_NguyenDinhDoan/views/admin/categories/index.php"
            class="list-group-item list-group-item-action bg-dark text-white border-secondary">
             <i class="bi bi-grid me-2"></i>
             Danh mục
         </a>
 
-        <a href="brand.php"
+        <a href="/MiniShop_NguyenDinhDoan/views/admin/brands/index.php"
            class="list-group-item list-group-item-action bg-dark text-white border-secondary">
             <i class="bi bi-bookmark me-2"></i>
             Thương hiệu
