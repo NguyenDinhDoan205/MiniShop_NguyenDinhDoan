@@ -27,19 +27,19 @@
             Thương hiệu
         </a>
 
-        <a href="product.php"
+        <a href="/MiniShop_NguyenDinhDoan/views/admin/products/index.php"
            class="list-group-item list-group-item-action bg-dark text-white border-secondary">
             <i class="bi bi-box me-2"></i>
             Sản phẩm
         </a>
 
-        <a href="customer.php"
+        <a href="/MiniShop_NguyenDinhDoan/views/admin/customers/index.php"
            class="list-group-item list-group-item-action bg-dark text-white border-secondary">
             <i class="bi bi-people me-2"></i>
             Khách hàng
         </a>
 
-        <a href="user.php"
+            <a href="/MiniShop_NguyenDinhDoan/views/admin/users/index.php"
            class="list-group-item list-group-item-action bg-dark text-white border-secondary">
             <i class="bi bi-person me-2"></i>
             Người dùng

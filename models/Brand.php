@@ -3,16 +3,14 @@
 class Brand
 {
     public ?int $id = null;
-
     public string $brandname;
-
     public string $slug;
-
     public ?string $image = null;
-
     public ?string $description = null;
-
     public int $status;
+    public ?string $created_at = null;
+
+    public ?string $updated_at = null;
 
 
     public function __construct(

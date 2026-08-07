@@ -18,9 +18,11 @@
 
     <div class="container-fluid">
 
-        <a class="navbar-brand" href="#">
+        <h2 class=text-white>
+           
             Admin Panel
-        </a>
+          
+        </h2>
 
         <div class="ms-auto text-white">
             Xin chào Admin

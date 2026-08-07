@@ -27,8 +27,8 @@ class BrandDAO extends BaseDAO
                 );
 
                 $brand->id = $row["id"];
-                $brand->createdAt = $row["created_at"];
-                $brand->updatedAt = $row["updated_at"];
+                $brand->created_at = $row["created_at"];
+                $brand->updated_at = $row["updated_at"];
 
                 $list[] = $brand;
             }
@@ -194,8 +194,8 @@ class BrandDAO extends BaseDAO
             );
 
             $brand->id = $row["id"];
-            $brand->createdAt = $row["created_at"];
-            $brand->updatedAt = $row["updated_at"];
+            $brand->created_at = $row["created_at"];
+            $brand->updated_at = $row["updated_at"];
 
             $list[] = $brand;
         }

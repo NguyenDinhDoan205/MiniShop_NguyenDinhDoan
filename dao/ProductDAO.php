@@ -222,4 +222,100 @@ class ProductDAO extends BaseDAO
             throw $e;
         }
     }
+    public function paging(int $page = 1, int $pageSize = 5): array
+    {
+        $list = [];
+
+        try {
+
+            $offset = ($page - 1) * $pageSize;
+
+            $sql = "SELECT * FROM products
+                    ORDER BY id DESC
+                    LIMIT ?, ?";
+
+            $stmt = $this->prepare($sql);
+            $stmt->bind_param("ii", $offset, $pageSize);
+            $stmt->execute();
+
+            $result = $stmt->get_result();
+
+            while ($row = $result->fetch_assoc()) {
+
+                $product = new Product(
+                    $row["category_id"],
+                    $row["brand_id"],
+                    $row["proname"],
+                    $row["slug"],
+                    $row["price"],
+                    $row["discount_price"],
+                    $row["quantity"],
+                    $row["image"],
+                    $row["description"],
+                    $row["status"]
+                );
+
+                $product->id = $row["id"];
+                $product->createdAt = $row["created_at"];
+                $product->updatedAt = $row["updated_at"];
+
+                $list[] = $product;
+            }
+
+        } catch (Exception $e) {
+            throw $e;
+        }
+
+        return $list;
+    }
+
+    public function search(string $keyword): array
+    {
+        $list = [];
+
+        try {
+
+            $sql = "SELECT *
+                    FROM products
+                    WHERE proname LIKE ?
+                    ORDER BY proname";
+
+            $stmt = $this->prepare($sql);
+
+            $search = "%{$keyword}%";
+
+            $stmt->bind_param("s", $search);
+
+            $stmt->execute();
+
+            $result = $stmt->get_result();
+
+            while ($row = $result->fetch_assoc()) {
+
+                $product = new Product(
+                    $row["category_id"],
+                    $row["brand_id"],
+                    $row["proname"],
+                    $row["slug"],
+                    $row["price"],
+                    $row["discount_price"],
+                    $row["quantity"],
+                    $row["image"],
+                    $row["description"],
+                    $row["status"]
+                );
+
+                $product->id = $row["id"];
+                $product->createdAt = $row["created_at"];
+                $product->updatedAt = $row["updated_at"];
+
+                $list[] = $product;
+            }
+
+        } catch (Exception $e) {
+            throw $e;
+        }
+
+        return $list;
+    }
 }

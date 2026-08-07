@@ -70,7 +70,9 @@ ob_start();
         </button>
 
     </div>
-      <?php if($keyword != ""): ?>
+
+    <?php if ($keyword != ""): ?>
+
     <div class="col-md-2">
 
         <a href="index.php" class="btn btn-secondary">
@@ -80,6 +82,8 @@ ob_start();
         </a>
 
     </div>
+
+    <?php endif; ?>
 
 </form>
 
@@ -111,7 +115,7 @@ ob_start();
     <?php
     $stt = ($page - 1) * $pageSize + 1;
 
-    foreach($brands as $item):
+    foreach ($brands as $item):
     ?>
 
         <tr>
@@ -124,7 +128,7 @@ ob_start();
 
             <td width="120">
 
-                <?php if(!empty($item->image)): ?>
+                <?php if (!empty($item->image)): ?>
 
                     <img
                         src="../../../uploads/brands/<?= $item->image ?>"
@@ -141,7 +145,7 @@ ob_start();
 
             <td>
 
-                <?php if($item->status == 1): ?>
+                <?php if ($item->status == 1): ?>
 
                     <span class="badge bg-success">
 
@@ -161,7 +165,7 @@ ob_start();
 
             </td>
 
-            <td><?= $item->createdAt ?></td>
+            <td><?= $item->created_at ?></td>
 
             <td>
 
@@ -199,13 +203,14 @@ ob_start();
     </tbody>
 
 </table>
-<?php if($keyword == ""): ?>
+
+<?php if ($keyword == ""): ?>
 
 <nav>
 
     <ul class="pagination justify-content-center">
 
-        <?php for($i = 1; $i <= $totalPage; $i++): ?>
+        <?php for ($i = 1; $i <= $totalPage; $i++): ?>
 
             <li class="page-item <?= ($page == $i) ? 'active' : '' ?>">
 
