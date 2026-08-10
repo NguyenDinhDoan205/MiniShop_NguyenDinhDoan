@@ -12,11 +12,11 @@ class Category
     public string $updatedAt;
 
     public function __construct(
-        string $catename = "",
-        string $slug = "",
-        ?string $image = null,
-        ?string $description = null,
-        int $status = 1
+    $catename,
+    $slug,
+    $image,
+    $description,
+    $status
     ) {
         $this->catename = $catename;
         $this->slug = $slug;

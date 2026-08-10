@@ -45,7 +45,7 @@
             Người dùng
         </a>
 
-        <a href="order.php"
+        <a href="/MiniShop_NguyenDinhDoan/views/admin/orders/index.php"
            class="list-group-item list-group-item-action bg-dark text-white border-secondary">
             <i class="bi bi-cart me-2"></i>
             Đơn hàng

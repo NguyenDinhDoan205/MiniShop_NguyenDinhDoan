@@ -1,6 +1,8 @@
 <?php
 require_once "../../../dao/UserDAO.php";
 
+$pageTitle = "Danh sách người dùng";
+
 $userDAO = new UserDAO();
 $keyword = $_GET["keyword"] ?? "";
 
@@ -28,71 +30,28 @@ ob_start();
 
 ?>
 
-<div class="card shadow">
+<div class="d-flex justify-content-between align-items-center mb-3">
 
+    <h2>Danh sách người dùng</h2>
 
-    <div class="card-header bg-primary text-white">
-
-
-        <div class="d-flex justify-content-between align-items-center">
-
-
-            <h4 class="mb-0">
-
-                <i class="bi bi-people"></i>
-
-                Quản lý người dùng
-
-            </h4>
-
-
-            <a href="create.php" class="btn btn-light">
-
-                <i class="bi bi-person-plus"></i>
-
-                Thêm user
-
-            </a>
-
-
-        </div>
-
-
-    </div>
-
-
-
+    <a href="create.php" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i>
+        Thêm mới
+    </a>
+</div>
     <div class="card-body">
-
-
         <form method="get" class="row g-2 mb-3">
-
-
             <div class="col-md-5">
-
                 <input
-
                     type="text"
-
                     name="keyword"
-
                     class="form-control"
-
                     placeholder="Nhập tên, username, email..."
-
                     value="<?= htmlspecialchars($keyword) ?>">
-
-
             </div>
-
-
             <div class="col-auto">
-
-
                 <button class="btn btn-primary">
-
-                    <i class="bi bi-search"></i>
-
+                   <i class="bi bi-search"></i>
                     Tìm kiếm
 
                 </button>
@@ -111,11 +70,6 @@ ob_start();
 
 
         </form>
-
-
-
-
-
         <div class="table-responsive">
 
 
@@ -141,7 +95,7 @@ ob_start();
 
                         <th>Trạng thái</th>
 
-                        <th width="220">Thao tác</th>
+                        <th width="250">Thao tác</th>
 
                     </tr>
 
@@ -274,6 +228,7 @@ ob_start();
             </table>
         </div>
     </div>
+    
 </div>
 <?php
 

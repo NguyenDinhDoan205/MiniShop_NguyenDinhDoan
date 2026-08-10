@@ -108,6 +108,7 @@ ob_start();
             <th>Tên danh mục</th>
 
             <th>Slug</th>
+            <th width="240">Hình ảnh</th>
 
             <th width="120">Trạng thái</th>
             <th width="170">Ngày tạo</th>
@@ -131,6 +132,22 @@ ob_start();
             <td><?= $item->catename ?></td>
 
             <td><?= $item->slug ?></td>
+            <td width="120">
+
+                <?php if (!empty($item->image)): ?>
+
+                    <img
+                        src="../../../uploads/categories/<?= $item->image ?>"
+                        width="80"
+                        class="img-thumbnail">
+
+                <?php else: ?>
+
+                    Không có ảnh
+
+                <?php endif; ?>
+
+            </td>
 
             <td>
 

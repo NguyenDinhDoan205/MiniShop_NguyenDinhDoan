@@ -105,6 +105,47 @@ class OrderDAO extends BaseDAO
 
         return null;
     }
+     public function getPage(int $page, int $pageSize): array
+    {
+        $list = [];
+
+        $offset = ($page - 1) * $pageSize;
+
+        $sql = "SELECT *
+                FROM orders
+                ORDER BY created_at DESC
+                LIMIT ?, ?";
+
+        $stmt = $this->prepare($sql);
+
+        $stmt->bind_param("ii", $offset, $pageSize);
+
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        while ($row = $result->fetch_assoc()) {
+
+            $order = new Order(
+                (int)$row["customer_id"],
+                $row["user_id"] !== null
+                    ? (int)$row["user_id"]
+                    : null,
+                $row["order_code"],
+                (float)$row["total_amount"],
+                $row["note"],
+                (int)$row["status"]
+            );
+
+            $order->id = (int)$row["id"];
+            $order->createdAt = $row["created_at"];
+            $order->updatedAt = $row["updated_at"];
+
+            $list[] = $order;
+        }
+
+        return $list;
+    }
     public function count(): int
     {
         $sql = "SELECT COUNT(*) AS total FROM orders";

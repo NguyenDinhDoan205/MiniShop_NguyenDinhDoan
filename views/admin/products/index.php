@@ -20,6 +20,7 @@ if ($keyword != "") {
     $total = $productDAO->count();
 }
 
+
 $totalPage = ceil($total / $pageSize);
 
 ob_start();

@@ -9,6 +9,7 @@ class UserDAO extends BaseDAO
         parent::__construct();
     }
 
+
     public function getAll(): array
     {
         $list = [];
@@ -43,6 +44,8 @@ class UserDAO extends BaseDAO
 
         return $list;
     }
+   
+   
 
     public function findById(int $id): ?User
     {

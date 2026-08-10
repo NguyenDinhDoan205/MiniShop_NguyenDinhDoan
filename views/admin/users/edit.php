@@ -1,8 +1,29 @@
 <?php
 require_once "../../../dao/UserDAO.php";
 
-$pageTitle = "Thêm người dùng";
+$pageTitle = "Cập nhật người dùngs";
 $userDAO = new UserDAO();
+
+
+$id = isset($_GET["id"]) ? (int)$_GET["id"] : 0;
+
+if ($id <= 0) {
+
+    header("Location: index.php");
+
+    exit;
+}
+
+
+$user = $userDAO->findById($id);
+
+if ($user == null) {
+
+    header("Location: index.php");
+
+    exit;
+}
+
 
 $error = "";
 
@@ -25,10 +46,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $error = "Vui lòng nhập username";
 
-    } elseif ($password == "") {
-
-        $error = "Vui lòng nhập mật khẩu";
-
     } elseif ($email == "") {
 
         $error = "Vui lòng nhập email";
@@ -39,18 +56,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     } else {
 
-        $user = new User(
-            $fullname,
-            $username,
-            $password,
-            $email,
-            $phone,
-            $address,
-            $role,
-            $status
-        );
+        if ($password == "") {
 
-        if ($userDAO->insert($user)) {
+            $password = $user->password;
+
+        }
+
+
+        $user->fullname = $fullname;
+
+        $user->username = $username;
+
+        $user->password = $password;
+
+        $user->email = $email;
+
+        $user->phone = $phone;
+
+        $user->address = $address;
+
+        $user->role = $role;
+
+        $user->status = $status;
+
+        if ($userDAO->update($user)) {
 
             header("Location: index.php");
 
@@ -58,7 +87,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         } else {
 
-            $error = "Thêm người dùng thất bại";
+            $error = "Cập nhật người dùng thất bại";
 
         }
     }
@@ -66,10 +95,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
 ob_start();
+
 ?>
 
+
 <h2 class="mb-4">
-    Thêm người dùng
+
+    Chỉnh sửa người dùng
+
 </h2>
 
 
@@ -88,56 +121,71 @@ ob_start();
     <div class="mb-3">
 
         <label class="form-label">
+
             Họ tên
+
         </label>
 
         <input
             type="text"
             name="fullname"
             class="form-control"
-            value="<?= htmlspecialchars($_POST["fullname"] ?? "") ?>"
+            value="<?= htmlspecialchars($user->fullname) ?>"
             placeholder="Nhập họ tên">
 
     </div>
+
     <div class="mb-3">
 
         <label class="form-label">
+
             Username
+
         </label>
 
         <input
             type="text"
             name="username"
             class="form-control"
-            value="<?= htmlspecialchars($_POST["username"] ?? "") ?>"
+            value="<?= htmlspecialchars($user->username) ?>"
             placeholder="Nhập username">
 
     </div>
     <div class="mb-3">
 
         <label class="form-label">
+
             Mật khẩu
+
         </label>
 
         <input
             type="password"
             name="password"
             class="form-control"
-            placeholder="Nhập mật khẩu">
+            placeholder="Để trống nếu không muốn đổi mật khẩu">
+
+        <small class="text-muted">
+
+            Để trống nếu muốn giữ mật khẩu cũ.
+
+        </small>
 
     </div>
 
     <div class="mb-3">
 
         <label class="form-label">
+
             Email
+
         </label>
 
         <input
             type="email"
             name="email"
             class="form-control"
-            value="<?= htmlspecialchars($_POST["email"] ?? "") ?>"
+            value="<?= htmlspecialchars($user->email) ?>"
             placeholder="example@gmail.com">
 
     </div>
@@ -145,44 +193,60 @@ ob_start();
     <div class="mb-3">
 
         <label class="form-label">
+
             Số điện thoại
+
         </label>
 
         <input
             type="text"
             name="phone"
             class="form-control"
-            value="<?= htmlspecialchars($_POST["phone"] ?? "") ?>"
+            value="<?= htmlspecialchars($user->phone) ?>"
             placeholder="Nhập số điện thoại">
 
     </div>
+
     <div class="mb-3">
 
         <label class="form-label">
+
             Địa chỉ
+
         </label>
 
         <textarea
             name="address"
             class="form-control"
             rows="3"
-            placeholder="Nhập địa chỉ"><?= htmlspecialchars($_POST["address"] ?? "") ?></textarea>
+            placeholder="Nhập địa chỉ"><?= htmlspecialchars($user->address) ?></textarea>
 
     </div>
+
     <div class="mb-3">
 
         <label class="form-label">
+
             Vai trò
+
         </label>
 
         <select name="role" class="form-select">
 
-            <option value="0">
+            <option
+                value="0"
+                <?= ($user->role == 0) ? "selected" : "" ?>>
+
                 User
+
             </option>
 
-            <option value="1">
+            <option
+                value="1"
+                <?= ($user->role == 1) ? "selected" : "" ?>>
+
                 Admin
+
             </option>
 
         </select>
@@ -192,22 +256,34 @@ ob_start();
     <div class="mb-3">
 
         <label class="form-label">
+
             Trạng thái
+
         </label>
 
         <select name="status" class="form-select">
 
-            <option value="1">
+            <option
+                value="1"
+                <?= ($user->status == 1) ? "selected" : "" ?>>
+
                 Hoạt động
+
             </option>
 
-            <option value="0">
+            <option
+                value="0"
+                <?= ($user->status == 0) ? "selected" : "" ?>>
+
                 Khóa
+
             </option>
 
         </select>
 
     </div>
+
+
     <div class="mt-4">
 
         <button
@@ -216,7 +292,7 @@ ob_start();
 
             <i class="bi bi-save"></i>
 
-            Lưu
+            Cập nhật
 
         </button>
 
@@ -224,11 +300,18 @@ ob_start();
         <a
             href="index.php"
             class="btn btn-secondary">
+
             <i class="bi bi-arrow-left"></i>
+
             Quay lại
+
         </a>
+
     </div>
+
+
 </form>
+
 
 <?php
 
@@ -237,3 +320,4 @@ $content = ob_get_clean();
 include "../layouts/master.php";
 
 ?>
+

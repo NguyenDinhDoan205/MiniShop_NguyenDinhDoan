@@ -44,12 +44,12 @@ ob_start();
 
             <tr>
                 <th>Danh mục</th>
-                <td><?= $product->categoryId ?></td>
+                <td><?= $product->catename ?></td>
             </tr>
 
             <tr>
                 <th>Thương hiệu</th>
-                <td><?= $product->brandId ?></td>
+                <td><?= $product->brandname ?></td>
             </tr>
 
             <tr>
@@ -83,9 +83,6 @@ ob_start();
                             src="../../../uploads/<?= $product->image ?>"
                             width="150"
                             class="img-thumbnail">
-
-                   
-
 
                     <?php endif; ?>
 

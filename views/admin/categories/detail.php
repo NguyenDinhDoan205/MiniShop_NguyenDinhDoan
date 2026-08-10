@@ -47,6 +47,37 @@ ob_start();
                 <th>Slug</th>
                 <td><?= $category->slug ?></td>
             </tr>
+             <tr>
+
+                <th>
+                    Hình ảnh
+                </th>
+
+                <td>
+
+                    <?php if (!empty($category->image)): ?>
+
+                        <img
+                            src="../../../uploads/categories/<?= htmlspecialchars($category->image) ?>"
+                            width="150"
+                            class="img-thumbnail">
+
+                    <?php else: ?>
+
+                        <span class="text-muted">
+                            Không có ảnh
+                        </span>
+
+                    <?php endif; ?>
+
+                </td>
+
+            </tr>
+              <tr>
+                <th>Mô tả</th>
+                <td><?= nl2br($category->description) ?></td>
+            </tr>
+            
 
             <tr>
                 <th>Trạng thái</th>
@@ -66,6 +97,16 @@ ob_start();
                     <?php endif; ?>
                 </td>
             </tr>
+             <tr>
+                <th>Ngày tạo</th>
+                <td><?= $category->createdAt ?></td>
+            </tr>
+
+            <tr>
+                <th>Ngày cập nhật</th>
+                <td><?= $category->updatedAt ?></td>
+            </tr>
+
 
         </table>
 

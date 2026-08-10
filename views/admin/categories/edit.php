@@ -3,94 +3,306 @@ require_once "../../../dao/CategoryDAO.php";
 require_once "../../../models/Category.php";
 
 $pageTitle = "Cập nhật danh mục";
-
 $categoryDAO = new CategoryDAO();
 
-if (!isset($_GET["id"])) {
+
+$id = isset($_GET["id"]) ? (int)$_GET["id"] : 0;
+
+if ($id <= 0) {
     header("Location: index.php");
     exit;
 }
-
-$id = (int)$_GET["id"];
 
 $category = $categoryDAO->findById($id);
 
 if ($category == null) {
-    die("Không tìm thấy danh mục.");
-}
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
-    $category->catename = trim($_POST["catename"]);
-    $category->slug = trim($_POST["slug"]);
-    $category->status = (int)$_POST["status"];
-
-    $categoryDAO->update($category);
-
     header("Location: index.php");
     exit;
 }
 
+$error = "";
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+    $catename = trim($_POST["catename"] ?? "");
+    $slug = trim($_POST["slug"] ?? "");
+    $status = isset($_POST["status"])
+        ? (int)$_POST["status"]
+        : 1;
+
+    if ($catename == "") {
+
+        $error = "Vui lòng nhập tên danh mục.";
+
+    } elseif ($slug == "") {
+
+        $error = "Vui lòng nhập slug.";
+
+    } else {
+
+        $image = $category->image;
+
+        if (
+            isset($_FILES["image"]) &&
+            $_FILES["image"]["error"] == 0
+        ) {
+
+            $fileName = $_FILES["image"]["name"];
+            $fileTmp = $_FILES["image"]["tmp_name"];
+            $fileSize = $_FILES["image"]["size"];
+
+            $extension = strtolower(
+                pathinfo(
+                    $fileName,
+                    PATHINFO_EXTENSION
+                )
+            );
+
+            $allowed = [
+                "jpg",
+                "jpeg",
+                "png",
+                "gif",
+                "webp"
+            ];
+
+            if (!in_array($extension, $allowed)) {
+
+                $error =
+                    "Chỉ được upload JPG, JPEG, PNG, GIF hoặc WEBP.";
+
+            } elseif ($fileSize > 200 * 1024) {
+
+                $error =
+                    "Kích thước hình ảnh không được vượt quá 200KB.";
+
+            } else {
+
+                $uploadDir =
+                    "../../../uploads/categories/";
+
+                if (!is_dir($uploadDir)) {
+                    mkdir(
+                        $uploadDir,
+                        0777,
+                        true
+                    );
+                }
+
+                $newImage =
+                    time() . "_" . $fileName;
+
+                if (
+                    move_uploaded_file(
+                        $fileTmp,
+                        $uploadDir . $newImage
+                    )
+                ) {
+
+                    if (
+                        !empty($category->image) &&
+                        file_exists(
+                            $uploadDir . $category->image
+                        )
+                    ) {
+
+                        unlink(
+                            $uploadDir . $category->image
+                        );
+                    }
+
+                    $image = $newImage;
+
+                } else {
+
+                    $error =
+                        "Upload hình ảnh thất bại.";
+                }
+            }
+        }
+
+        if ($error == "") {
+
+            $category->catename = $catename;
+            $category->slug = $slug;
+            $category->image = $image;
+            $category->status = $status;
+
+            if ($categoryDAO->update($category)) {
+
+                header("Location: index.php");
+                exit;
+
+            } else {
+
+                $error =
+                    "Cập nhật danh mục thất bại.";
+            }
+        }
+    }
+}
+
 ob_start();
+
 ?>
 
-<h2 class="mb-4">Cập nhật danh mục</h2>
+<div class="card">
 
-<form method="post">
+    <div class="card-header">
 
-    <div class="mb-3">
-        <label class="form-label">Tên danh mục</label>
+        <h4>
+            Cập nhật danh mục
+        </h4>
 
-        <input
-            type="text"
-            name="catename"
-            class="form-control"
-            value="<?= htmlspecialchars($category->catename) ?>"
-            required>
     </div>
 
-    <div class="mb-3">
-        <label class="form-label">Slug</label>
+    <div class="card-body">
 
-        <input
-            type="text"
-            name="slug"
-            class="form-control"
-            value="<?= htmlspecialchars($category->slug) ?>"
-            required>
+        <?php if ($error != ""): ?>
+
+            <div class="alert alert-danger">
+                <?= htmlspecialchars($error) ?>
+            </div>
+
+        <?php endif; ?>
+
+        <form
+            method="post"
+            enctype="multipart/form-data">
+
+
+            <div class="mb-3">
+
+                <label class="form-label">
+                    Tên danh mục
+                </label>
+
+                <input
+                    type="text"
+                    name="catename"
+                    class="form-control"
+                    value="<?= htmlspecialchars(
+                        $_POST["catename"]
+                        ?? $category->catename
+                    ) ?>">
+
+            </div>
+            <div class="mb-3">
+
+                <label class="form-label">
+                    Slug
+                </label>
+
+                <input
+                    type="text"
+                    name="slug"
+                    class="form-control"
+                    value="<?= htmlspecialchars(
+                        $_POST["slug"]
+                        ?? $category->slug
+                    ) ?>">
+
+            </div>
+            <div class="mb-3">
+
+                <label class="form-label">
+                    Hình ảnh hiện tại
+                </label>
+
+                <br>
+
+                <?php if (!empty($category->image)): ?>
+
+                    <img
+                        src="../../../uploads/categories/<?= htmlspecialchars($category->image) ?>"
+                        width="120"
+                        class="img-thumbnail">
+
+                <?php else: ?>
+
+                    <p class="text-muted">
+                        Chưa có hình ảnh
+                    </p>
+
+                <?php endif; ?>
+
+            </div>
+            <div class="mb-3">
+
+                <label class="form-label">
+                    Chọn hình ảnh mới
+                </label>
+
+                <input
+                    type="file"
+                    name="image"
+                    class="form-control"
+                    accept="image/*">
+
+                <small class="text-muted">
+                    Không chọn ảnh mới thì giữ nguyên ảnh cũ.
+                </small>
+
+            </div>
+
+            <div class="mb-3">
+
+                <label class="form-label">
+                    Trạng thái
+                </label>
+
+                <select
+                    name="status"
+                    class="form-select">
+
+                    <option
+                        value="1"
+                        <?= $category->status == 1
+                            ? "selected"
+                            : "" ?>>
+
+                        Hiển thị
+
+                    </option>
+
+                    <option
+                        value="0"
+                        <?= $category->status == 0
+                            ? "selected"
+                            : "" ?>>
+
+                        Ẩn
+
+                    </option>
+
+                </select>
+
+            </div>
+            <button
+                type="submit"
+                class="btn btn-warning">
+
+                <i class="bi bi-pencil"></i>
+
+                Cập nhật
+
+            </button>
+
+            <a
+                href="index.php"
+                class="btn btn-secondary">
+
+                Quay lại
+
+            </a>
+
+        </form>
+
     </div>
 
-    <div class="mb-3">
-        <label class="form-label">Trạng thái</label>
-
-        <select name="status" class="form-select">
-
-            <option value="1"
-                <?= $category->status == 1 ? "selected" : "" ?>>
-                Hiển thị
-            </option>
-
-            <option value="0"
-                <?= $category->status == 0 ? "selected" : "" ?>>
-                Ẩn
-            </option>
-
-        </select>
-    </div>
-
-    <button type="submit" class="btn btn-primary">
-        <i class="bi bi-save"></i>
-        Cập nhật
-    </button>
-
-    <a href="index.php" class="btn btn-secondary">
-        Quay lại
-    </a>
-
-</form>
+</div>
 
 <?php
-
 $content = ob_get_clean();
-
 include "../layouts/master.php";
+?>
+

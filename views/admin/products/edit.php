@@ -39,8 +39,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $product->status = (int)($_POST["status"] ?? 1);
 
-    // Validate
-
     if ($product->categoryId <= 0) {
         $errors["categoryId"] = "Vui lòng chọn danh mục.";
     }
@@ -68,9 +66,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($product->quantity < 0) {
         $errors["quantity"] = "Số lượng không hợp lệ.";
     }
-
-    // Upload ảnh
-
     if (
         isset($_FILES["image"]) &&
         $_FILES["image"]["error"] == UPLOAD_ERR_OK

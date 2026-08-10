@@ -38,7 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         move_uploaded_file(
             $_FILES["image"]["tmp_name"],
-            "../../../uploads/products/" . $image
+            "../../../uploads/products" . $image
         );
     }
 
@@ -253,19 +253,37 @@ ob_start();
 
                     </div>
 
-                    <div class="col-md-12 mb-3">
+                   <div class="col-md-12 mb-3">
 
-                        <label class="form-label">
-                            Hình ảnh
-                        </label>
+                    <label class="form-label">
+                        Hình ảnh
+                    </label>
 
-                        <input
-                            type="file"
-                            name="image"
-                            class="form-control"
-                            accept=".jpg,.jpeg,.png,.gif,.webp">
+                    <input
+                        type="file"
+                        id="image"
+                        name="image"
+                        class="form-control"
+                        accept=".jpg,.jpeg,.png,.gif,.webp">
 
-                    </div>
+                </div>
+
+              <div class="col-md-12 mb-3">
+                  <div class="border rounded d-flex justify-content-center align-items-center"
+                    style="width:220px; height:230px;">
+
+                    <img
+                        id="preview"
+                        src=""
+                        style="display:none; max-width:100%; max-height:100%;">
+
+                    <span id="noImage" class="text-secondary">
+                        Chưa chọn hình ảnh
+                    </span>
+
+                </div>
+
+            </div>
 
                     <div class="col-md-12 mb-3">
 
