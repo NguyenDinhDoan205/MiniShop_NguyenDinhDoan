@@ -14,7 +14,7 @@ if ($limit != 10 && $limit != 20 && $limit != 30) {
 
 $page = (int)($_GET["page"] ?? 1);
 
-if ($page < 1) {
+if ($page < 1) {    
     $page = 1;
 }
 
@@ -313,79 +313,131 @@ ob_start();
 
         </form>
 
+<?php if ($totalPages > 1): ?>
 
-    <?php if ($totalPages > 1): ?>
+<nav>
 
-        <nav>
+    <ul class="pagination justify-content-center">
 
-            <ul class="pagination mb-0">
+        <?php
+        $keywordParam = "";
 
-                <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
+        if ($keyword != "") {
+            $keywordParam = "&keyword=" . urlencode($keyword);
+        }
+        ?>
 
-                    <?php if ($page <= 1): ?>
+        <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
 
-                        <span class="page-link">
-                            Trước
-                        </span>
+            <?php if ($page <= 1): ?>
 
-                    <?php else: ?>
+                <span class="page-link">
+                    Đầu
+                </span>
 
-                        <a
-                            class="page-link"
-                            href="?page=<?= $page - 1 ?>&limit=<?= $limit ?><?= $keyword != '' ? '&keyword=' . urlencode($keyword) : '' ?>">
+            <?php else: ?>
 
-                            Trước
+                <a
+                    class="page-link"
+                    href="?limit=<?= $limit ?>&page=1<?= $keywordParam ?>">
 
-                        </a>
+                    Đầu
 
-                    <?php endif; ?>
+                </a>
 
-                </li>
-                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+            <?php endif; ?>
 
-                    <li
-                        class="page-item <?= $i == $page ? 'active' : '' ?>">
+        </li>
 
-                        <a
-                            class="page-link"
-                            href="?page=<?= $i ?>&limit=<?= $limit ?><?= $keyword != '' ? '&keyword=' . urlencode($keyword) : '' ?>">
+        <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
 
-                            <?= $i ?>
+            <?php if ($page <= 1): ?>
 
-                        </a>
+                <span class="page-link">
+                    Trước
+                </span>
 
-                    </li>
+            <?php else: ?>
 
-                <?php endfor; ?>
+                <a
+                    class="page-link"
+                    href="?limit=<?= $limit ?>&page=<?= $page - 1 ?><?= $keywordParam ?>">
 
+                    Trước
 
-                <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
+                </a>
 
-                    <?php if ($page >= $totalPages): ?>
+            <?php endif; ?>
 
-                        <span class="page-link">
-                            Sau
-                        </span>
+        </li>
+        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
 
-                    <?php else: ?>
+            <li
+                class="page-item <?= $i == $page ? 'active' : '' ?>">
 
-                        <a
-                            class="page-link"
-                            href="?page=<?= $page + 1 ?>&limit=<?= $limit ?><?= $keyword != '' ? '&keyword=' . urlencode($keyword) : '' ?>">
+                <a
+                    class="page-link"
+                    href="?limit=<?= $limit ?>&page=<?= $i ?><?= $keywordParam ?>">
 
-                            Sau
+                    <?= $i ?>
 
-                        </a>
+                </a>
 
-                    <?php endif; ?>
+            </li>
 
-                </li>
+        <?php endfor; ?>
+        <li
+            class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
 
-            </ul>
+            <?php if ($page >= $totalPages): ?>
 
-        </nav>
+                <span class="page-link">
+                    Sau
+                </span>
 
-    <?php endif; ?>
+            <?php else: ?>
+
+                <a
+                    class="page-link"
+                    href="?limit=<?= $limit ?>&page=<?= $page + 1 ?><?= $keywordParam ?>">
+
+                    Sau
+
+                </a>
+
+            <?php endif; ?>
+
+        </li>
+
+        <li
+            class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
+
+            <?php if ($page >= $totalPages): ?>
+
+                <span class="page-link">
+                    Cuối
+                </span>
+
+            <?php else: ?>
+
+                <a
+                    class="page-link"
+                    href="?limit=<?= $limit ?>&page=<?= $totalPages ?><?= $keywordParam ?>">
+
+                    Cuối
+
+                </a>
+
+            <?php endif; ?>
+
+        </li>
+
+    </ul>
+
+</nav>
+
+<?php endif; ?>
+
 
 </div>
 

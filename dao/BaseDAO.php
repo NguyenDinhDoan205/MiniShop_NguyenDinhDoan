@@ -38,13 +38,31 @@ class BaseDAO extends Database
     {
         $this->conn->close();
     }
-    public function count(string $table): int
+   public function count(string $table, string $column = "", string $keyword = "")
     {
-        $sql = "SELECT COUNT(*) AS total FROM $table";
+        if ($keyword == "") {
+            $sql = "SELECT COUNT(*) AS total FROM $table";
 
-        $result = $this->conn->query($sql);
+            $result = $this->conn->query($sql);
 
-        $row = $result->fetch_assoc();
+            $row = $result->fetch_assoc();
+
+            return (int)$row["total"];
+        }
+
+        $sql = "SELECT COUNT(*) AS total
+                FROM $table
+                WHERE $column LIKE ?";
+
+        $stmt = $this->conn->prepare($sql);
+
+        $keyword = "%$keyword%";
+
+        $stmt->bind_param("s", $keyword);
+
+        $stmt->execute();
+
+        $row = $stmt->get_result()->fetch_assoc();
 
         return (int)$row["total"];
     }

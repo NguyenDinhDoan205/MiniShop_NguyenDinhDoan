@@ -405,43 +405,76 @@ class ProductDAO extends BaseDAO
 
         return $stmt->execute();
     }
-    public function getPage(int $limit, int $offset)
+    public function getPage(int $limit, int $offset, string $keyword = "")
     {
-
         $sql = "SELECT
-                    p.*,
+                    p.id,
+                    p.category_id,
+                    p.brand_id,
+                    p.proname,
+                    p.slug,
+                    p.price,
+                    p.discount_price,
+                    p.quantity,
+                    p.image,
+                    p.description,
+                    p.status,
+                    p.created_at,
+                    p.updated_at,
                     c.catename,
                     b.brandname
+
                 FROM products p
-                INNER JOIN categories c ON p.category_id = c.id
-                INNER JOIN brands b ON p.brand_id = b.id
+
+                INNER JOIN categories c
+                    ON p.category_id = c.id
+
+                INNER JOIN brands b
+                    ON p.brand_id = b.id
+
+                WHERE p.proname LIKE ?
+
                 ORDER BY p.proname
+
                 LIMIT ? OFFSET ?";
 
         $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("ii", $limit, $offset);
+
+        $keyword = "%$keyword%";
+
+        $stmt->bind_param(
+            "sii",
+            $keyword,
+            $limit,
+            $offset
+        );
+
         $stmt->execute();
+
         $result = $stmt->get_result();
+
         $products = [];
 
         while ($row = $result->fetch_assoc()) {
 
             $product = new Product(
-                $row["category_id"],
-                $row["brand_id"],
+                (int)$row["category_id"],
+                (int)$row["brand_id"],
                 $row["proname"],
                 $row["slug"],
-                $row["price"],
-                $row["discount_price"],
-                $row["quantity"],
+                (float)$row["price"],
+                (float)$row["discount_price"],
+                (int)$row["quantity"],
                 $row["image"],
                 $row["description"],
-                $row["status"]
+                (int)$row["status"]
             );
 
-            $product->id = $row["id"];
+            $product->id = (int)$row["id"];
+
             $product->catename = $row["catename"];
             $product->brandname = $row["brandname"];
+
             $product->createdAt = $row["created_at"];
             $product->updatedAt = $row["updated_at"];
 
