@@ -74,14 +74,7 @@ class CustomerDAO extends BaseDAO
 
         return null;
     }
-    public function count(): int
-    {
-        $sql = "SELECT COUNT(*) AS total FROM customers";
-        $result = $this->executeQuery($sql);
-        $row = $result->fetch_assoc();
-
-        return (int)$row["total"];
-    }
+   
 
     public function insert(Customer $customer): bool
     {

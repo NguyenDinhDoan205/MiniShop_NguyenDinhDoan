@@ -1,14 +1,16 @@
 <?php
+
 require_once "../../../dao/BrandDAO.php";
 
 $pageTitle = "Quản lý thương hiệu";
 
 $brandDAO = new BrandDAO();
-$brands = $brandDAO->getAll();
 
 if (isset($_GET["delete"])) {
 
-    $brandDAO->delete($_GET["delete"]);
+    $id = (int)$_GET["delete"];
+
+    $brandDAO->delete($id);
 
     header("Location: index.php");
     exit;
@@ -17,23 +19,53 @@ if (isset($_GET["delete"])) {
 $keyword = trim($_GET["keyword"] ?? "");
 
 $pageSize = 5;
+
 $page = isset($_GET["page"]) ? (int)$_GET["page"] : 1;
+
+if ($page < 1) {
+    $page = 1;
+}
 
 if ($keyword != "") {
 
     $brands = $brandDAO->search($keyword);
-    $totalPage = 1;
+
+    $totalRecords = count($brands);
+
+    $totalPage = (int)ceil($totalRecords / $pageSize);
+
+    if ($totalPage > 0 && $page > $totalPage) {
+        $page = $totalPage;
+    }
+
+    $offset = ($page - 1) * $pageSize;
+
+    $brands = array_slice(
+        $brands,
+        $offset,
+        $pageSize
+    );
 
 } else {
 
-    $brands = $brandDAO->paging($page, $pageSize);
+    $totalRecords = $brandDAO->count("brands");
 
-    $total = $brandDAO->count();
-    $totalPage = ceil($total / $pageSize);
+    $totalPage = (int)ceil($totalRecords / $pageSize);
+
+    if ($totalPage > 0 && $page > $totalPage) {
+        $page = $totalPage;
+    }
+
+    $brands = $brandDAO->paging(
+        $page,
+        $pageSize
+    );
 }
 
 ob_start();
 ?>
+
+
 
 <div class="d-flex justify-content-between align-items-center mb-3">
 

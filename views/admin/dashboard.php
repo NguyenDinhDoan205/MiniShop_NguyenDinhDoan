@@ -1,4 +1,5 @@
 <?php
+
 require_once "../../dao/CategoryDAO.php";
 require_once "../../dao/UserDAO.php";
 require_once "../../dao/ProductDAO.php";
@@ -13,35 +14,58 @@ $productDAO = new ProductDAO();
 $customerDAO = new CustomerDAO();
 $orderDAO = new OrderDAO();
 
-$totalCategory = $categoryDAO->count();
-$totalUser = $userDAO->count();
-$totalProduct = $productDAO->count();
-$totalCustomer = $customerDAO->count();
-$totalOrder = $orderDAO->count();
+$totalCategory = $categoryDAO->count("categories");
+$totalUser = $userDAO->count("users");
+$totalProduct = $productDAO->count("products");
+$totalCustomer = $customerDAO->count("customers");
+$totalOrder = $orderDAO->count("orders");
 
 $latestProducts = $productDAO->latest();
 $latestOrders = $orderDAO->latest();
 
 const ORDER_STATUS_MAP = [
-    0 => ['label' => 'Chờ xử lý',   'class' => 'bg-warning-subtle text-warning-emphasis'],
-    1 => ['label' => 'Đã xác nhận', 'class' => 'bg-success-subtle text-success-emphasis'],
-    2 => ['label' => 'Đang giao',   'class' => 'bg-info-subtle text-info-emphasis'],
-    3 => ['label' => 'Hoàn thành',  'class' => 'bg-primary-subtle text-primary-emphasis'],
-    4 => ['label' => 'Đã hủy',      'class' => 'bg-danger-subtle text-danger-emphasis'],
+    0 => [
+        'label' => 'Chờ xử lý',
+        'class' => 'bg-warning-subtle text-warning-emphasis'
+    ],
+
+    1 => [
+        'label' => 'Đã xác nhận',
+        'class' => 'bg-success-subtle text-success-emphasis'
+    ],
+
+    2 => [
+        'label' => 'Đang giao',
+        'class' => 'bg-info-subtle text-info-emphasis'
+    ],
+
+    3 => [
+        'label' => 'Hoàn thành',
+        'class' => 'bg-primary-subtle text-primary-emphasis'
+    ],
+
+    4 => [
+        'label' => 'Đã hủy',
+        'class' => 'bg-danger-subtle text-danger-emphasis'
+    ],
 ];
 
 function statusLabel(int $status): string
 {
     return ORDER_STATUS_MAP[$status]['label'] ?? 'Không xác định';
 }
- 
+
 function statusBadgeClass(int $status): string
 {
-    return ORDER_STATUS_MAP[$status]['class'] ?? 'bg-secondary-subtle text-secondary-emphasis';
+    return ORDER_STATUS_MAP[$status]['class']
+        ?? 'bg-secondary-subtle text-secondary-emphasis';
 }
 
 ob_start();
+
 ?>
+
+
 
 <h2 class="fw-bold mb-4 ">Dashboard</h2>
 

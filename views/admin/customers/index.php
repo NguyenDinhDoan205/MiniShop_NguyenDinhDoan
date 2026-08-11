@@ -1,4 +1,5 @@
 <?php
+
 require_once "../../../dao/CustomerDAO.php";
 
 $pageTitle = "Quản lý khách hàng";
@@ -6,22 +7,56 @@ $pageTitle = "Quản lý khách hàng";
 $customerDAO = new CustomerDAO();
 
 $page = isset($_GET["page"]) ? (int)$_GET["page"] : 1;
-$pageSize = 5;
+
+if ($page < 1) {
+    $page = 1;
+}
+
+$pageSize = 10;
 
 $keyword = trim($_GET["keyword"] ?? "");
 
 if ($keyword != "") {
+
     $customers = $customerDAO->search($keyword);
+
     $total = count($customers);
-    $totalPage = 1;
+
+    $totalPage = (int)ceil($total / $pageSize);
+
+    if ($totalPage > 0 && $page > $totalPage) {
+        $page = $totalPage;
+    }
+
+    $offset = ($page - 1) * $pageSize;
+
+    $customers = array_slice(
+        $customers,
+        $offset,
+        $pageSize
+    );
+
 } else {
-    $customers = $customerDAO->paging($page, $pageSize);
-    $total = $customerDAO->count();
-    $totalPage = ceil($total / $pageSize);
+
+    $total = $customerDAO->count("customers");
+
+    $totalPage = (int)ceil($total / $pageSize);
+
+    if ($totalPage > 0 && $page > $totalPage) {
+        $page = $totalPage;
+    }
+
+    $customers = $customerDAO->paging(
+        $page,
+        $pageSize
+    );
 }
 
 ob_start();
+
 ?>
+
+
 <div class="d-flex justify-content-between align-items-center">
 
             <h2>

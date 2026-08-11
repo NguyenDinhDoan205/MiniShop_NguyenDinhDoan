@@ -1,4 +1,5 @@
 <?php
+
 require_once "../../../dao/CategoryDAO.php";
 
 $pageTitle = "Danh sách danh mục";
@@ -7,7 +8,9 @@ $categoryDAO = new CategoryDAO();
 
 if (isset($_GET["delete"])) {
 
-    if (!$categoryDAO->delete($_GET["delete"])) {
+    $id = (int)$_GET["delete"];
+
+    if (!$categoryDAO->delete($id)) {
 
         echo "<script>
                 alert('Không thể xóa vì danh mục đang có sản phẩm.');
@@ -21,9 +24,13 @@ if (isset($_GET["delete"])) {
     exit;
 }
 
-
 $pageSize = 5;
+
 $page = isset($_GET["page"]) ? (int)$_GET["page"] : 1;
+
+if ($page < 1) {
+    $page = 1;
+}
 
 $keyword = trim($_GET["keyword"] ?? "");
 
@@ -31,19 +38,42 @@ if ($keyword != "") {
 
     $categories = $categoryDAO->search($keyword);
 
-    $totalPage = 1;
+    $totalRecords = count($categories);
+
+    $totalPage = (int)ceil($totalRecords / $pageSize);
+
+    if ($totalPage > 0 && $page > $totalPage) {
+        $page = $totalPage;
+    }
+
+    $offset = ($page - 1) * $pageSize;
+
+    $categories = array_slice(
+        $categories,
+        $offset,
+        $pageSize
+    );
 
 } else {
 
-    $categories = $categoryDAO->paging($page, $pageSize);
+    $totalRecords = $categoryDAO->count("categories");
 
-    $total = $categoryDAO->count();
+    $totalPage = (int)ceil($totalRecords / $pageSize);
 
-    $totalPage = ceil($total / $pageSize);
+    if ($totalPage > 0 && $page > $totalPage) {
+        $page = $totalPage;
+    }
+
+    $categories = $categoryDAO->paging(
+        $page,
+        $pageSize
+    );
 }
 
 ob_start();
+
 ?>
+
 
 <div class="d-flex justify-content-between align-items-center mb-3">
 

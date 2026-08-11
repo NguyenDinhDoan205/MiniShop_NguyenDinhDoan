@@ -6,7 +6,11 @@ $pageTitle = "Danh sách Sản phẩm";
 
 $productDAO = new ProductDAO();
 
-$limit = 10;
+$limit = (int)($_GET["limit"] ?? 10);
+
+if ($limit != 10 && $limit != 20 && $limit != 30) {
+    $limit = 10;
+}
 
 $page = (int)($_GET["page"] ?? 1);
 
@@ -50,6 +54,7 @@ if ($keyword != "") {
 ob_start();
 
 ?>
+
 
 <div class="d-flex justify-content-between align-items-center mb-3">
 
@@ -281,119 +286,108 @@ ob_start();
 
         </div>
 
-        <?php if ($totalPages > 1): ?>
+       <div class="d-flex justify-content-between align-items-center mt-3">
 
-            <nav>
+        <form method="GET">
 
-                <ul class="pagination justify-content-center">
+            <label class="me-2">Hiển thị:</label>
 
-                    <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
+            <select
+                name="limit"
+                class="form-select"
+                onchange="this.form.submit()">
 
-                        <?php if ($page <= 1): ?>
+                <option value="10" <?= $limit == 10 ? 'selected' : '' ?>>
+                    10
+                </option>
 
-                            <span class="page-link">
-                                Trước
-                            </span>
+                <option value="20" <?= $limit == 20 ? 'selected' : '' ?>>
+                    20
+                </option>
 
-                        <?php else: ?>
+                <option value="30" <?= $limit == 30 ? 'selected' : '' ?>>
+                    30
+                </option>
 
-                            <?php if ($keyword != ""): ?>
+            </select>
 
-                                <a
-                                    class="page-link"
-                                    href="?page=<?= $page - 1 ?>&keyword=<?= urlencode($keyword) ?>">
+        </form>
 
-                                    Trước
 
-                                </a>
+    <?php if ($totalPages > 1): ?>
 
-                            <?php else: ?>
+        <nav>
 
-                                <a
-                                    class="page-link"
-                                    href="?page=<?= $page - 1 ?>">
+            <ul class="pagination mb-0">
 
-                                    Trước
+                <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
 
-                                </a>
+                    <?php if ($page <= 1): ?>
 
-                            <?php endif; ?>
+                        <span class="page-link">
+                            Trước
+                        </span>
 
-                        <?php endif; ?>
+                    <?php else: ?>
 
-                    </li>
+                        <a
+                            class="page-link"
+                            href="?page=<?= $page - 1 ?>&limit=<?= $limit ?><?= $keyword != '' ? '&keyword=' . urlencode($keyword) : '' ?>">
 
-                    <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                            Trước
 
-                        <li class="page-item <?= $i == $page ? 'active' : '' ?>">
+                        </a>
 
-                            <?php if ($keyword != ""): ?>
+                    <?php endif; ?>
 
-                                <a
-                                    class="page-link"
-                                    href="?page=<?= $i ?>&keyword=<?= urlencode($keyword) ?>">
+                </li>
+                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
 
-                                    <?= $i ?>
+                    <li
+                        class="page-item <?= $i == $page ? 'active' : '' ?>">
 
-                                </a>
+                        <a
+                            class="page-link"
+                            href="?page=<?= $i ?>&limit=<?= $limit ?><?= $keyword != '' ? '&keyword=' . urlencode($keyword) : '' ?>">
 
-                            <?php else: ?>
+                            <?= $i ?>
 
-                                <a
-                                    class="page-link"
-                                    href="?page=<?= $i ?>">
-
-                                    <?= $i ?>
-
-                                </a>
-
-                            <?php endif; ?>
-
-                        </li>
-
-                    <?php endfor; ?>
-
-                    <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
-
-                        <?php if ($page >= $totalPages): ?>
-
-                            <span class="page-link">
-                                Sau
-                            </span>
-
-                        <?php else: ?>
-
-                            <?php if ($keyword != ""): ?>
-
-                                <a
-                                    class="page-link"
-                                    href="?page=<?= $page + 1 ?>&keyword=<?= urlencode($keyword) ?>">
-
-                                    Sau
-
-                                </a>
-
-                            <?php else: ?>
-
-                                <a
-                                    class="page-link"
-                                    href="?page=<?= $page + 1 ?>">
-
-                                    Sau
-
-                                </a>
-
-                            <?php endif; ?>
-
-                        <?php endif; ?>
+                        </a>
 
                     </li>
 
-                </ul>
+                <?php endfor; ?>
 
-            </nav>
 
-        <?php endif; ?>
+                <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
+
+                    <?php if ($page >= $totalPages): ?>
+
+                        <span class="page-link">
+                            Sau
+                        </span>
+
+                    <?php else: ?>
+
+                        <a
+                            class="page-link"
+                            href="?page=<?= $page + 1 ?>&limit=<?= $limit ?><?= $keyword != '' ? '&keyword=' . urlencode($keyword) : '' ?>">
+
+                            Sau
+
+                        </a>
+
+                    <?php endif; ?>
+
+                </li>
+
+            </ul>
+
+        </nav>
+
+    <?php endif; ?>
+
+</div>
 
     </div>
 

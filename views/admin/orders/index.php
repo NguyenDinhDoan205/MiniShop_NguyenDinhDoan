@@ -1,10 +1,10 @@
 <?php
+
 require_once "../../../dao/OrderDAO.php";
 
 $pageTitle = "Danh sách đơn hàng";
 
 $orderDAO = new OrderDAO();
-
 
 $page = isset($_GET["page"])
     ? (int)$_GET["page"]
@@ -26,9 +26,9 @@ $orders = $orderDAO->getPage(
     $keyword
 );
 
-$total = $orderDAO->count($keyword);
+$total = $orderDAO->count("orders");
 
-$totalPages = ceil($total / $pageSize);
+$totalPages = (int)ceil($total / $pageSize);
 
 ob_start();
 

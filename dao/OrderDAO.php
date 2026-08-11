@@ -146,15 +146,7 @@ class OrderDAO extends BaseDAO
 
         return $list;
     }
-    public function count(): int
-    {
-        $sql = "SELECT COUNT(*) AS total FROM orders";
-        $result = $this->executeQuery($sql);
-        $row = $result->fetch_assoc();
-
-        return (int)$row["total"];
-    }
-
+  
 
     public function insert(Order $order): bool
     {

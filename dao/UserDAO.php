@@ -115,15 +115,7 @@ class UserDAO extends BaseDAO
             throw $e;
         }
     }
-     public function count(): int
-    {
-        $sql = "SELECT COUNT(*) AS total FROM brands";
-        $result = $this->executeQuery($sql);
-        $row = $result->fetch_assoc();
-
-        return (int)$row["total"];
-    }
-
+   
 
     public function update(User $user): bool
     {
