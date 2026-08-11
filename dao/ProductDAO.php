@@ -81,24 +81,27 @@ class ProductDAO extends BaseDAO
 
         return $list;
     }
-    public function count(): int
-    {
-        $sql = "SELECT COUNT(*) AS total FROM products";
-        $result = $this->executeQuery($sql);
-        $row = $result->fetch_assoc();
+   
 
-        return (int)$row["total"];
-    }
-
-
-    public function findById(int $id): ?Product
+   public function findById(int $id): ?Product
     {
         try {
 
-            $sql = "SELECT * FROM products WHERE id=?";
+            $sql = "SELECT 
+                        p.*,
+                        c.catename AS catename,
+                        b.brandname AS brandname
+                    FROM products p
+                    LEFT JOIN categories c 
+                        ON p.category_id = c.id
+                    LEFT JOIN brands b 
+                        ON p.brand_id = b.id
+                    WHERE p.id = ?";
 
             $stmt = $this->prepare($sql);
+
             $stmt->bind_param("i", $id);
+
             $stmt->execute();
 
             $result = $stmt->get_result();
@@ -119,6 +122,8 @@ class ProductDAO extends BaseDAO
                 );
 
                 $product->id = $row["id"];
+                $product->catename = $row["catename"] ?? "";
+                $product->brandname = $row["brandname"] ?? "";
                 $product->createdAt = $row["created_at"];
                 $product->updatedAt = $row["updated_at"];
 
@@ -132,36 +137,43 @@ class ProductDAO extends BaseDAO
         return null;
     }
 
-    public function insert(Product $product): bool
+
+    public function insert(Product $product): int
     {
-        try {
+        $sql = "INSERT INTO products
+                (
+                    category_id,
+                    brand_id,
+                    proname,
+                    slug,
+                    price,
+                    discount_price,
+                    quantity,
+                    image,
+                    description,
+                    status
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-            $sql = "INSERT INTO products
-                    (category_id, brand_id, proname, slug, price,
-                    discount_price, quantity, image, description, status)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $this->prepare($sql);
 
-            $stmt = $this->prepare($sql);
+        $stmt->bind_param(
+            "iissddissi",
+            $product->categoryId,
+            $product->brandId,
+            $product->proname,
+            $product->slug,
+            $product->price,
+            $product->discountPrice,
+            $product->quantity,
+            $product->image,
+            $product->description,
+            $product->status
+        );
 
-            $stmt->bind_param(
-                "iissddissi",
-                $product->categoryId,
-                $product->brandId,
-                $product->proname,
-                $product->slug,
-                $product->price,
-                $product->discountPrice,
-                $product->quantity,
-                $product->image,
-                $product->description,
-                $product->status
-            );
+        $stmt->execute();
 
-            return $stmt->execute();
-
-        } catch (Exception $e) {
-            throw $e;
-        }
+        return $stmt->insert_id;
     }
 
     public function update(Product $product): bool
@@ -208,62 +220,53 @@ class ProductDAO extends BaseDAO
 
 
     public function delete(int $id): bool
-    {
-        try {
+{
+    $sql = "UPDATE products SET status = 0 WHERE id = ?";
 
-            $sql = "DELETE FROM products WHERE id=?";
+    $stmt = $this->prepare($sql);
+    $stmt->bind_param("i", $id);
 
-            $stmt = $this->prepare($sql);
-            $stmt->bind_param("i", $id);
-
-            return $stmt->execute();
-
-        } catch (Exception $e) {
-            throw $e;
-        }
-    }
-    public function paging(int $page = 1, int $pageSize = 5): array
+    return $stmt->execute();
+}
+    public function paging(int $page = 1, int $limit = 10): array
     {
         $list = [];
 
-        try {
+        $offset = ($page - 1) * $limit;
 
-            $offset = ($page - 1) * $pageSize;
+        $sql = "SELECT *
+                FROM products
+                ORDER BY id DESC
+                LIMIT ? OFFSET ?";
 
-            $sql = "SELECT * FROM products
-                    ORDER BY id DESC
-                    LIMIT ?, ?";
+        $stmt = $this->prepare($sql);
 
-            $stmt = $this->prepare($sql);
-            $stmt->bind_param("ii", $offset, $pageSize);
-            $stmt->execute();
+        $stmt->bind_param("ii", $limit, $offset);
 
-            $result = $stmt->get_result();
+        $stmt->execute();
 
-            while ($row = $result->fetch_assoc()) {
+        $result = $stmt->get_result();
 
-                $product = new Product(
-                    $row["category_id"],
-                    $row["brand_id"],
-                    $row["proname"],
-                    $row["slug"],
-                    $row["price"],
-                    $row["discount_price"],
-                    $row["quantity"],
-                    $row["image"],
-                    $row["description"],
-                    $row["status"]
-                );
+        while ($row = $result->fetch_assoc()) {
 
-                $product->id = $row["id"];
-                $product->createdAt = $row["created_at"];
-                $product->updatedAt = $row["updated_at"];
+            $product = new Product(
+                $row["category_id"],
+                $row["brand_id"],
+                $row["proname"],
+                $row["slug"],
+                $row["price"],
+                $row["discount_price"],
+                $row["quantity"],
+                $row["image"],
+                $row["description"],
+                $row["status"]
+            );
 
-                $list[] = $product;
-            }
+            $product->id = $row["id"];
+            $product->createdAt = $row["created_at"];
+            $product->updatedAt = $row["updated_at"];
 
-        } catch (Exception $e) {
-            throw $e;
+            $list[] = $product;
         }
 
         return $list;
@@ -275,10 +278,17 @@ class ProductDAO extends BaseDAO
 
         try {
 
-            $sql = "SELECT *
-                    FROM products
-                    WHERE proname LIKE ?
-                    ORDER BY proname";
+            $sql = "SELECT 
+                        p.*,
+                        c.catename AS catename,
+                        b.brandname AS brandname
+                    FROM products p
+                    LEFT JOIN categories c
+                        ON p.category_id = c.id
+                    LEFT JOIN brands b
+                        ON p.brand_id = b.id
+                    WHERE p.proname LIKE ?
+                    ORDER BY p.proname";
 
             $stmt = $this->prepare($sql);
 
@@ -306,6 +316,8 @@ class ProductDAO extends BaseDAO
                 );
 
                 $product->id = $row["id"];
+                $product->catename = $row["catename"] ?? "";
+                $product->brandname = $row["brandname"] ?? "";
                 $product->createdAt = $row["created_at"];
                 $product->updatedAt = $row["updated_at"];
 
@@ -317,5 +329,125 @@ class ProductDAO extends BaseDAO
         }
 
         return $list;
+    }
+    public function insertImage(int $productId, string $image): bool
+    {
+        $sql = "INSERT INTO product_images (product_id, image)
+                VALUES (?, ?)";
+
+        $stmt = $this->prepare($sql);
+
+        $stmt->bind_param("is", $productId, $image);
+
+        return $stmt->execute();
+    }
+    public function getImagesByProductId(int $productId): array
+    {
+        $list = [];
+
+        $sql = "SELECT *
+                FROM product_images
+                WHERE product_id = ?
+                ORDER BY id DESC";
+
+        $stmt = $this->prepare($sql);
+
+        $stmt->bind_param("i", $productId);
+
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        while ($row = $result->fetch_assoc()) {
+            $list[] = $row;
+        }
+
+        return $list;
+    }
+    public function deleteImage(int $id): bool
+    {
+        $sql = "SELECT image
+                FROM product_images
+                WHERE id = ?";
+
+        $stmt = $this->prepare($sql);
+
+        $stmt->bind_param("i", $id);
+
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        if (!$row = $result->fetch_assoc()) {
+            return false;
+        }
+
+        $image = $row["image"];
+        $file = __DIR__ . "/../uploads/products/" . $image;
+
+        if (file_exists($file)) {
+            unlink($file);
+        }
+        $sql = "DELETE FROM product_images WHERE id = ?";
+
+        $stmt = $this->prepare($sql);
+
+        $stmt->bind_param("i", $id);
+
+        return $stmt->execute();
+    }
+    public function updateStatus($id, $status)
+    {
+        $sql = "UPDATE products SET status = ? WHERE id = ?";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("ii", $status, $id);
+
+        return $stmt->execute();
+    }
+    public function getPage(int $limit, int $offset)
+    {
+
+        $sql = "SELECT
+                    p.*,
+                    c.catename,
+                    b.brandname
+                FROM products p
+                INNER JOIN categories c ON p.category_id = c.id
+                INNER JOIN brands b ON p.brand_id = b.id
+                ORDER BY p.proname
+                LIMIT ? OFFSET ?";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("ii", $limit, $offset);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $products = [];
+
+        while ($row = $result->fetch_assoc()) {
+
+            $product = new Product(
+                $row["category_id"],
+                $row["brand_id"],
+                $row["proname"],
+                $row["slug"],
+                $row["price"],
+                $row["discount_price"],
+                $row["quantity"],
+                $row["image"],
+                $row["description"],
+                $row["status"]
+            );
+
+            $product->id = $row["id"];
+            $product->catename = $row["catename"];
+            $product->brandname = $row["brandname"];
+            $product->createdAt = $row["created_at"];
+            $product->updatedAt = $row["updated_at"];
+
+            $products[] = $product;
+        }
+
+        return $products;
     }
 }

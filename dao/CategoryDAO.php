@@ -54,15 +54,7 @@ class CategoryDAO extends BaseDAO
 
         return $categories;
     }
-    public function count(): int
-    {
-        $sql = "SELECT COUNT(*) AS total FROM categories";
-        $result = $this->executeQuery($sql);
-        $row = $result->fetch_assoc();
-
-        return (int)$row["total"];
-    }
-
+   
     public function findById(int $id): ?Category
     {
         try {

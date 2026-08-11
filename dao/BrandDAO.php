@@ -38,14 +38,7 @@ class BrandDAO extends BaseDAO
 
         return $list;
     }
-    public function count(): int
-    {
-        $sql = "SELECT COUNT(*) AS total FROM brands";
-        $result = $this->executeQuery($sql);
-        $row = $result->fetch_assoc();
-
-        return (int)$row["total"];
-    }
+ 
 
     public function findById(int $id): ?Brand
     {
@@ -146,7 +139,7 @@ class BrandDAO extends BaseDAO
             throw $e;
         }
     }
-     public function paging($page, $pageSize)
+    public function paging($page, $pageSize)
     {
         $offset = ($page - 1) * $pageSize;
 

@@ -3,8 +3,10 @@
 class Product
 {
     public int $id;
-    public int $categoryId;
+    public string $categoryId;
     public int $brandId;
+    public string $catename; 
+    public string $brandname;
     public string $proname;
     public string $slug;
     public float $price;
@@ -38,5 +40,7 @@ class Product
         $this->image = $image;
         $this->description = $description;
         $this->status = $status;
+        $this->catename = ""; 
+        $this->brandname = "";
     }
 }

@@ -17,6 +17,8 @@ if ($product == null) {
     die("Không tìm thấy sản phẩm.");
 }
 
+$gallery = $productDAO->getImagesByProductId($product->id);
+
 $categories = $categoryDAO->getAll();
 $brands = $brandDAO->getAll();
 
@@ -110,22 +112,61 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             }
         }
-    }
+    }if (count($errors) == 0) {
 
-    if (count($errors) == 0) {
+    if ($productDAO->update($product)) {
 
-        if ($productDAO->update($product)) {
+        if (isset($_FILES["images"])) {
 
-            header("Location: index.php");
-            exit;
+            $uploadDir = "../../../uploads/products/";
 
-        } else {
+            foreach ($_FILES["images"]["name"] as $key => $name) {
 
-            $errors["general"] = "Cập nhật thất bại.";
+                if ($_FILES["images"]["error"][$key] != UPLOAD_ERR_OK) {
+                    continue;
+                }
 
+                $extension = strtolower(
+                    pathinfo($name, PATHINFO_EXTENSION)
+                );
+
+                $allow = ["jpg", "jpeg", "png", "gif", "webp"];
+
+                if (!in_array($extension, $allow)) {
+                    continue;
+                }
+
+                $imageName = time() . "_" . $key . "_" . basename($name);
+
+                $uploadFile = $uploadDir . $imageName;
+
+                if (move_uploaded_file(
+                    $_FILES["images"]["tmp_name"][$key],
+                    $uploadFile
+                )) {
+
+                    $productDAO->insertImage(
+                        $product->id,
+                        $imageName
+                    );
+                }
+            }
         }
+
+        header("Location: index.php");
+        exit;
+
+    } else {
+
+        $errors["general"] = "Cập nhật thất bại.";
     }
 }
+
+
+}
+
+
+
 
 ob_start();
 ?>
@@ -324,6 +365,72 @@ ob_start();
             class="form-control">
 
     </div>
+    <div class="mb-3">
+
+    <label class="form-label">
+        Thêm hình ảnh phụ
+    </label>
+
+    <input
+        type="file"
+        name="images[]"
+        class="form-control"
+        multiple
+        accept="image/*">
+
+    <small class="text-muted">
+        Có thể chọn nhiều hình ảnh.
+    </small>
+
+</div>
+    <div class="mb-3">
+
+    <label class="form-label">
+        Hình ảnh phụ hiện tại
+    </label>
+
+    <div class="d-flex flex-wrap gap-3">
+
+        <?php if (!empty($gallery)): ?>
+
+            <?php foreach ($gallery as $item): ?>
+
+                <div class="text-center">
+
+                    <img
+                        src="../../../uploads/products/<?= htmlspecialchars($item["image"]) ?>"
+                        width="120"
+                        height="120"
+                        class="img-thumbnail"
+                        style="object-fit: cover;">
+
+                    <br>
+
+                    <a
+                        href="delete.php?id=<?= $item["id"] ?>&product_id=<?= $product->id ?>"
+                        class="btn btn-danger btn-sm mt-2"
+                        onclick="return confirm('Bạn có chắc muốn xóa hình ảnh này?')">
+
+                        <i class="bi bi-trash"></i>
+                        Xóa
+
+                    </a>
+
+                </div>
+
+            <?php endforeach; ?>
+
+        <?php else: ?>
+
+            <span class="text-muted">
+                Chưa có hình ảnh phụ
+            </span>
+
+        <?php endif; ?>
+
+    </div>
+
+</div>
 
                 <div class="mb-3">
 
