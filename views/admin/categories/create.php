@@ -17,7 +17,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $slug = trim($_POST["slug"] ?? "");
     $status = isset($_POST["status"]) ? (int)$_POST["status"] : 1;
 
-    // Kiểm tra tên danh mục
     if ($catename == "") {
 
         $error = "Vui lòng nhập tên danh mục.";
@@ -30,22 +29,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $image = "";
 
-        // =========================
-        // UPLOAD HÌNH ẢNH
-        // =========================
-
         if (isset($_FILES["image"]) && $_FILES["image"]["error"] == 0) {
 
             $fileName = $_FILES["image"]["name"];
             $fileTmp = $_FILES["image"]["tmp_name"];
             $fileSize = $_FILES["image"]["size"];
-
-            // Lấy phần mở rộng
             $extension = strtolower(
                 pathinfo($fileName, PATHINFO_EXTENSION)
             );
 
-            // Định dạng cho phép
             $allowed = ["jpg", "jpeg", "png", "gif", "webp"];
 
             if (!in_array($extension, $allowed)) {
@@ -63,11 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0777, true);
                 }
-
-                // Đổi tên file
                 $image = time() . "_" . $fileName;
-
-                // Upload
                 if (!move_uploaded_file(
                     $fileTmp,
                     $uploadDir . $image
@@ -77,10 +65,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
             }
         }
-
-        // =========================
-        // LƯU DATABASE
-        // =========================
 
         if ($error == "") {
 

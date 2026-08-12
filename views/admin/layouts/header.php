@@ -1,33 +1,35 @@
-<!DOCTYPE html>
-<html lang="vi">
+<?php
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+$user = $_SESSION["user"];
 
-    <title><?= $pageTitle ?></title>
+?>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm py-2">
+    <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css" rel="stylesheet">
-</head>
+        <button id="btnMenu" class="btn btn-outline-light border-0 me-3" type="button">
+            <i class="bi bi-list fs-4"></i>
+        </button>
 
-<body>
+        <div class="d-flex align-items-center gap-3">
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-
-    <div class="container-fluid">
-
-        <h2 class=text-white>
-           
-            Admin Panel
-          
-        </h2>
-
-        <div class="ms-auto text-white">
-            Xin chào Admin
+            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center shadow-sm"
+                 style="width: 42px; height: 42px;">
+                <i class="bi bi-person-fill text-white fs-5"></i>
+            </div>
+            <div class="text-white">
+                <div class="small text-white-50">Xin chào</div>
+                <div class="fw-bold"><?= htmlspecialchars($user->fullname) ?></div>
+            </div>
+            <a href="/MiniShop_NguyenDinhDoan/views/admin/logout.php"
+               class="btn btn-sm btn-outline-light ms-2">
+                <i class="bi bi-box-arrow-right"></i> Đăng xuất
+            </a>
         </div>
-
     </div>
-
 </nav>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

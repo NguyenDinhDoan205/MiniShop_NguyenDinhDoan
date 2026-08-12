@@ -51,7 +51,7 @@
             Đơn hàng
         </a>
 
-        <a href="/MiniShop_NguyenDinhDoan/views/admin/login.php"
+        <a href="/MiniShop_NguyenDinhDoan/views/admin/logout.php"
            class="list-group-item list-group-item-action bg-dark text-danger border-secondary">
             <i class="bi bi-box-arrow-right me-2"></i>
             Đăng xuất

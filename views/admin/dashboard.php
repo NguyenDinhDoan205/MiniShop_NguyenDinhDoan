@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . "/../../models/User.php";
+
 session_start();
 
 if (!isset($_SESSION["user"])) {
@@ -9,12 +11,11 @@ if (!isset($_SESSION["user"])) {
 
 $user = $_SESSION["user"];
 
-
-require_once "../../dao/CategoryDAO.php";
-require_once "../../dao/UserDAO.php";
-require_once "../../dao/ProductDAO.php";
-require_once "../../dao/CustomerDAO.php";
-require_once "../../dao/OrderDAO.php";
+require_once __DIR__ . "/../../dao/CategoryDAO.php";
+require_once __DIR__ . "/../../dao/UserDAO.php";
+require_once __DIR__ . "/../../dao/ProductDAO.php";
+require_once __DIR__ . "/../../dao/CustomerDAO.php";
+require_once __DIR__ . "/../../dao/OrderDAO.php";
 
 $pageTitle = "Dashboard";
 
@@ -246,7 +247,7 @@ ob_start();
     </div>
 
 </div>
-
+                                                                                                                                                                                                    
 <?php
 $content = ob_get_clean();
 
