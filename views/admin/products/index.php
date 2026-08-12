@@ -16,9 +16,24 @@ $page = (int)($_GET["page"] ?? 1);
 
 if ($page < 1) {    
     $page = 1;
-}
+}   
 
 $keyword = trim($_GET["keyword"] ?? "");
+
+$sort = $_GET["sort"] ?? "name_asc";
+
+$allowedSort = [
+    "name_asc",
+    "name_desc",
+    "price_asc",
+    "price_desc",
+    "quantity_asc",
+    "quantity_desc"
+];
+
+if (!in_array($sort, $allowedSort)) {
+    $sort = "name_asc";
+}
 
 $offset = ($page - 1) * $limit;
 
@@ -56,6 +71,7 @@ ob_start();
 ?>
 
 
+
 <div class="d-flex justify-content-between align-items-center mb-3">
 
     <h2>Danh sách sản phẩm</h2>
@@ -67,42 +83,122 @@ ob_start();
 
 </div>
 
-<div class="card">
+<form method="GET" class="mb-4">
+    <div class="row g-3 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label fw-semibold">
+                Tìm kiếm sản phẩm
+            </label>
+            <input
+                type="text"
+                name="keyword"
+                value="<?= htmlspecialchars($keyword) ?>"
+                class="form-control"
+                placeholder="Nhập tên sản phẩm..."
+            >
+        </div>
 
-    <div class="card-body">
+        <div class="col-md-2">
+            <label class="form-label fw-semibold">
+                Sản phẩm / trang
+            </label>
 
-        <form method="get" class="row g-2 mb-3">
+            <select name="limit" class="form-select">
 
-            <div class="col-md-5">
+                <option value="10" <?= $limit == 10 ? "selected" : "" ?>>
+                    10 sản phẩm
+                </option>
 
-                <input
-                    type="text"
-                    name="keyword"
-                    class="form-control"
-                    placeholder="Nhập tên sản phẩm..."
-                    value="<?= htmlspecialchars($keyword) ?>">
+                <option value="20" <?= $limit == 20 ? "selected" : "" ?>>
+                    20 sản phẩm
+                </option>
 
-            </div>
+                <option value="30" <?= $limit == 30 ? "selected" : "" ?>>
+                    30 sản phẩm
+                </option>
 
-            <div class="col-auto">
+            </select>
+        </div>
 
-                <button type="submit" class="btn btn-primary">
+     <div class="col-md-3">
+            <label class="form-label fw-semibold">
+                Sắp xếp theo
+            </label>
 
+            <select name="sort" class="form-select">
+
+                <option
+                    value="name_asc"
+                    <?= $sort == "name_asc" ? "selected" : "" ?>
+                >
+                    Tên A - Z
+                </option>
+
+                <option
+                    value="name_desc"
+                    <?= $sort == "name_desc" ? "selected" : "" ?>
+                >
+                    Tên Z - A
+                </option>
+
+                <option
+                    value="price_asc"
+                    <?= $sort == "price_asc" ? "selected" : "" ?>
+                >
+                    Giá thấp → cao
+                </option>
+
+                <option
+                    value="price_desc"
+                    <?= $sort == "price_desc" ? "selected" : "" ?>
+                >
+                    Giá cao → thấp
+                </option>
+
+                <option
+                    value="quantity_asc"
+                    <?= $sort == "quantity_asc" ? "selected" : "" ?>
+                >
+                    Số lượng thấp → cao
+                </option>
+
+                <option
+                    value="quantity_desc"
+                    <?= $sort == "quantity_desc" ? "selected" : "" ?>
+                >
+                    Số lượng cao → thấp
+                </option>
+
+            </select>
+        </div>
+        <div class="col-md-3">
+
+            <div class="d-flex gap-2">
+
+                <button
+                    type="submit"
+                    class="btn btn-primary flex-grow-1"
+                >
                     <i class="bi bi-search"></i>
                     Tìm kiếm
-
                 </button>
 
-                <a href="index.php" class="btn btn-secondary">
-
+                <a
+                    href="index.php"
+                    class="btn btn-secondary"
+                    title="Làm mới"
+                >
                     <i class="bi bi-arrow-clockwise"></i>
-                    Làm mới
-
                 </a>
 
             </div>
 
-        </form>
+        </div>
+
+    </div>
+
+</form>
+
 
         <div class="table-responsive">
 
