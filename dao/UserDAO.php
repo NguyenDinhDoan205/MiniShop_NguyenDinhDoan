@@ -169,5 +169,40 @@ class UserDAO extends BaseDAO
             throw $e;
         }
     }
+    public function findByUsername($username)
+    {
+        $sql = "SELECT * FROM users WHERE username = ?";
+
+        $stmt = $this->conn->prepare($sql);
+
+        $stmt->bind_param("s", $username);
+
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        if ($result->num_rows === 0) {
+            return null;
+        }
+
+        $row = $result->fetch_assoc();
+
+        $user = new User(
+            $row["fullname"],
+            $row["username"],
+            $row["password"],
+            $row["email"],
+            $row["phone"],
+            $row["address"],
+            (int)$row["role"],
+            (int)$row["status"],
+            $row["created_at"] ?? "",
+            $row["updated_at"] ?? ""
+        );
+
+        $user->id = (int)$row["id"];
+
+        return $user;
+    }
     
 }

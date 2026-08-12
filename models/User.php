@@ -22,7 +22,9 @@ class User
         string $phone = "",
         string $address = "",
         int $role = 0,
-        int $status = 1
+        int $status = 1,
+        string $createdAt = "",
+        string $updatedAt = ""
     ) {
         $this->fullname = $fullname;
         $this->username = $username;
@@ -32,5 +34,7 @@ class User
         $this->address = $address;
         $this->role = $role;
         $this->status = $status;
+        $this->createdAt = $createdAt;
+        $this->updatedAt = $updatedAt;
     }
 }

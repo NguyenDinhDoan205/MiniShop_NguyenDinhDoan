@@ -1,5 +1,15 @@
 <?php
 
+session_start();
+
+if (!isset($_SESSION["user"])) {
+    header("Location: login.php");
+    exit;
+}
+
+$user = $_SESSION["user"];
+
+
 require_once "../../dao/CategoryDAO.php";
 require_once "../../dao/UserDAO.php";
 require_once "../../dao/ProductDAO.php";

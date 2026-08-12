@@ -170,8 +170,6 @@ ob_start();
 
             <div class="row">
 
-                <!-- DANH MỤC -->
-
                 <div class="col-md-6 mb-3">
 
                     <label class="form-label">
@@ -206,9 +204,6 @@ ob_start();
 
                 </div>
 
-
-                <!-- THƯƠNG HIỆU -->
-
                 <div class="col-md-6 mb-3">
 
                     <label class="form-label">
@@ -242,10 +237,6 @@ ob_start();
                     </select>
 
                 </div>
-
-
-                <!-- TÊN SẢN PHẨM -->
-
                 <div class="col-md-12 mb-3">
 
                     <label class="form-label">
@@ -260,9 +251,6 @@ ob_start();
                         required>
 
                 </div>
-
-
-                <!-- GIÁ -->
 
                 <div class="col-md-6 mb-3">
 
@@ -281,9 +269,6 @@ ob_start();
 
                 </div>
 
-
-                <!-- GIÁ KHUYẾN MÃI -->
-
                 <div class="col-md-6 mb-3">
 
                     <label class="form-label">
@@ -300,9 +285,6 @@ ob_start();
 
                 </div>
 
-
-                <!-- SỐ LƯỢNG -->
-
                 <div class="col-md-6 mb-3">
 
                     <label class="form-label">
@@ -317,9 +299,6 @@ ob_start();
                         value="<?= htmlspecialchars($_POST["quantity"] ?? "0") ?>">
 
                 </div>
-
-
-                <!-- TRẠNG THÁI -->
 
                 <div class="col-md-6 mb-3">
 
@@ -342,10 +321,6 @@ ob_start();
                     </select>
 
                 </div>
-
-
-                <!-- ẢNH CHÍNH -->
-
                 <div class="col-md-12 mb-3">
 
                     <label class="form-label">
@@ -360,9 +335,6 @@ ob_start();
                         accept=".jpg,.jpeg,.png,.gif,.webp">
 
                 </div>
-
-
-                <!-- PREVIEW ẢNH CHÍNH -->
 
                 <div class="col-md-12 mb-3">
 
@@ -392,9 +364,6 @@ ob_start();
 
                 </div>
 
-
-                <!-- ẢNH PHỤ -->
-
                 <div class="col-md-12 mb-3">
 
                     <label class="form-label">
@@ -415,9 +384,6 @@ ob_start();
 
                 </div>
 
-
-                <!-- PREVIEW ẢNH PHỤ -->
-
                 <div class="col-md-12 mb-3">
 
                     <div
@@ -427,9 +393,6 @@ ob_start();
                     </div>
 
                 </div>
-
-
-                <!-- MÔ TẢ -->
 
                 <div class="col-md-12 mb-3">
 
@@ -446,8 +409,6 @@ ob_start();
 
             </div>
 
-
-            <!-- BUTTON -->
 
             <div class="text-end">
 
@@ -479,11 +440,6 @@ ob_start();
 
 
 <script>
-
-// =============================
-// PREVIEW ẢNH CHÍNH
-// =============================
-
 document
     .getElementById("mainImage")
     .addEventListener("change", function () {
@@ -525,11 +481,6 @@ document
         }
 
     });
-
-
-// =============================
-// PREVIEW NHIỀU ẢNH PHỤ
-// =============================
 
 document
     .getElementById("galleryImages")
