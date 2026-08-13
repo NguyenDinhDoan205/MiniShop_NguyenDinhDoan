@@ -1,6 +1,7 @@
 <?php
 require_once "../../../dao/BrandDAO.php";
 require_once "../../../models/Brand.php";
+require_once "../../../middleware/CsrfMiddleware.php";
 
 $pageTitle = "Cập nhật thương hiệu";
 
@@ -21,7 +22,7 @@ if ($brand == null) {
 $errors = [];
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
+    CsrfMiddleware::verify();
     $brand->brandname = trim($_POST["brandname"]);
     $brand->slug = trim($_POST["slug"]);
     $brand->description = trim($_POST["description"]);
@@ -61,7 +62,13 @@ ob_start();
 
 <h2 class="mb-4">Cập nhật thương hiệu</h2>
 
-<form method="post" enctype="multipart/form-data">
+<form action="edit.php" method="POST">
+
+    <input
+        type="hidden"
+        name="csrf_token"
+        value="<?= htmlspecialchars($_SESSION["csrf_token"]) ?>"
+    >
 
     <div class="mb-3">
 

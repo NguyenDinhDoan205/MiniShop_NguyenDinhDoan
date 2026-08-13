@@ -14,9 +14,9 @@ if ($limit != 10 && $limit != 20 && $limit != 30) {
 
 $page = (int)($_GET["page"] ?? 1);
 
-if ($page < 1) {    
+if ($page < 1) {
     $page = 1;
-}   
+}
 
 $keyword = trim($_GET["keyword"] ?? "");
 
@@ -51,7 +51,6 @@ if ($keyword != "") {
     }
 
     $products = array_slice($products, $offset, $limit);
-
 } else {
 
     $totalRecords = $productDAO->count("products");
@@ -94,8 +93,7 @@ ob_start();
                 name="keyword"
                 value="<?= htmlspecialchars($keyword) ?>"
                 class="form-control"
-                placeholder="Nhập tên sản phẩm..."
-            >
+                placeholder="Nhập tên sản phẩm...">
         </div>
 
         <div class="col-md-2">
@@ -120,7 +118,7 @@ ob_start();
             </select>
         </div>
 
-     <div class="col-md-3">
+        <div class="col-md-3">
             <label class="form-label fw-semibold">
                 Sắp xếp theo
             </label>
@@ -129,43 +127,37 @@ ob_start();
 
                 <option
                     value="name_asc"
-                    <?= $sort == "name_asc" ? "selected" : "" ?>
-                >
+                    <?= $sort == "name_asc" ? "selected" : "" ?>>
                     Tên A - Z
                 </option>
 
                 <option
                     value="name_desc"
-                    <?= $sort == "name_desc" ? "selected" : "" ?>
-                >
+                    <?= $sort == "name_desc" ? "selected" : "" ?>>
                     Tên Z - A
                 </option>
 
                 <option
                     value="price_asc"
-                    <?= $sort == "price_asc" ? "selected" : "" ?>
-                >
+                    <?= $sort == "price_asc" ? "selected" : "" ?>>
                     Giá thấp → cao
                 </option>
 
                 <option
                     value="price_desc"
-                    <?= $sort == "price_desc" ? "selected" : "" ?>
-                >
+                    <?= $sort == "price_desc" ? "selected" : "" ?>>
                     Giá cao → thấp
                 </option>
 
                 <option
                     value="quantity_asc"
-                    <?= $sort == "quantity_asc" ? "selected" : "" ?>
-                >
+                    <?= $sort == "quantity_asc" ? "selected" : "" ?>>
                     Số lượng thấp → cao
                 </option>
 
                 <option
                     value="quantity_desc"
-                    <?= $sort == "quantity_desc" ? "selected" : "" ?>
-                >
+                    <?= $sort == "quantity_desc" ? "selected" : "" ?>>
                     Số lượng cao → thấp
                 </option>
 
@@ -177,8 +169,7 @@ ob_start();
 
                 <button
                     type="submit"
-                    class="btn btn-primary flex-grow-1"
-                >
+                    class="btn btn-primary flex-grow-1">
                     <i class="bi bi-search"></i>
                     Tìm kiếm
                 </button>
@@ -186,8 +177,7 @@ ob_start();
                 <a
                     href="index.php"
                     class="btn btn-secondary"
-                    title="Làm mới"
-                >
+                    title="Làm mới">
                     <i class="bi bi-arrow-clockwise"></i>
                 </a>
 
@@ -200,52 +190,52 @@ ob_start();
 </form>
 
 
-        <div class="table-responsive">
+<div class="table-responsive">
 
-            <table class="table table-bordered table-hover align-middle">
+    <table class="table table-bordered table-hover align-middle">
 
-                <thead class="table-dark text-center">
+        <thead class="table-dark text-center">
 
-                    <tr>
+            <tr>
 
-                        <th width="60">STT</th>
-                        <th width="90">Ảnh</th>
-                        <th>Tên sản phẩm</th>
-                        <th>Danh mục</th>
-                        <th>Thương hiệu</th>
-                        <th>Giá</th>
-                        <th>Giảm giá</th>
-                        <th>SL</th>
-                        <th>Trạng thái</th>
-                        <th width="240">Thao tác</th>
+                <th width="60">STT</th>
+                <th width="90">Ảnh</th>
+                <th>Tên sản phẩm</th>
+                <th>Danh mục</th>
+                <th>Thương hiệu</th>
+                <th>Giá</th>
+                <th>Giảm giá</th>
+                <th>SL</th>
+                <th>Trạng thái</th>
+                <th width="240">Thao tác</th>
 
-                    </tr>
+            </tr>
 
-                </thead>
+        </thead>
 
-                <tbody>
+        <tbody>
 
-                <?php if (count($products) == 0): ?>
+            <?php if (count($products) == 0): ?>
 
-                    <tr>
+                <tr>
 
-                        <td colspan="10" class="text-center text-danger">
+                    <td colspan="10" class="text-center text-danger">
 
-                            Không có dữ liệu.
+                        Không có dữ liệu.
 
-                        </td>
+                    </td>
 
-                    </tr>
+                </tr>
 
-                <?php else: ?>
+            <?php else: ?>
 
-                    <?php
+                <?php
 
-                    $stt = ($page - 1) * $limit + 1;
+                $stt = ($page - 1) * $limit + 1;
 
-                    foreach ($products as $item):
+                foreach ($products as $item):
 
-                    ?>
+                ?>
 
                     <tr>
 
@@ -358,186 +348,185 @@ ob_start();
 
                             </a>
 
-                            <a
-                                href="delete.php?id=<?= $item->id ?>"
-                                class="btn btn-danger btn-sm"
-                                onclick="return confirm('Bạn có chắc chắn muốn xóa?')">
+                            <form method="POST" action="delete.php" style="display:inline;">
+                                <input type="hidden" name="id" value="<?= $item->id ?>">
+                                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Bạn có chắc chắn muốn xóa?')">
+                                    <i class="bi bi-trash"></i> Xóa
+                                </button>
+                            </form>
 
-                                <i class="bi bi-trash"></i>
-                                Xóa
-
-                            </a>
 
                         </td>
 
                     </tr>
 
-                    <?php endforeach; ?>
-
-                <?php endif; ?>
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-       <div class="d-flex justify-content-between align-items-center mt-3">
-
-        <form method="GET">
-
-            <label class="me-2">Hiển thị:</label>
-
-            <select
-                name="limit"
-                class="form-select"
-                onchange="this.form.submit()">
-
-                <option value="10" <?= $limit == 10 ? 'selected' : '' ?>>
-                    10
-                </option>
-
-                <option value="20" <?= $limit == 20 ? 'selected' : '' ?>>
-                    20
-                </option>
-
-                <option value="30" <?= $limit == 30 ? 'selected' : '' ?>>
-                    30
-                </option>
-
-            </select>
-
-        </form>
-
-<?php if ($totalPages > 1): ?>
-
-<nav>
-
-    <ul class="pagination justify-content-center">
-
-        <?php
-        $keywordParam = "";
-
-        if ($keyword != "") {
-            $keywordParam = "&keyword=" . urlencode($keyword);
-        }
-        ?>
-
-        <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
-
-            <?php if ($page <= 1): ?>
-
-                <span class="page-link">
-                    Đầu
-                </span>
-
-            <?php else: ?>
-
-                <a
-                    class="page-link"
-                    href="?limit=<?= $limit ?>&page=1<?= $keywordParam ?>">
-
-                    Đầu
-
-                </a>
+                <?php endforeach; ?>
 
             <?php endif; ?>
 
-        </li>
+        </tbody>
 
-        <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
+    </table>
 
-            <?php if ($page <= 1): ?>
+</div>
 
-                <span class="page-link">
-                    Trước
-                </span>
+<div class="d-flex justify-content-between align-items-center mt-3">
 
-            <?php else: ?>
+    <form method="GET">
 
-                <a
-                    class="page-link"
-                    href="?limit=<?= $limit ?>&page=<?= $page - 1 ?><?= $keywordParam ?>">
+        <label class="me-2">Hiển thị:</label>
 
-                    Trước
+        <select
+            name="limit"
+            class="form-select"
+            onchange="this.form.submit()">
 
-                </a>
+            <option value="10" <?= $limit == 10 ? 'selected' : '' ?>>
+                10
+            </option>
 
-            <?php endif; ?>
+            <option value="20" <?= $limit == 20 ? 'selected' : '' ?>>
+                20
+            </option>
 
-        </li>
-        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+            <option value="30" <?= $limit == 30 ? 'selected' : '' ?>>
+                30
+            </option>
 
-            <li
-                class="page-item <?= $i == $page ? 'active' : '' ?>">
+        </select>
 
-                <a
-                    class="page-link"
-                    href="?limit=<?= $limit ?>&page=<?= $i ?><?= $keywordParam ?>">
+    </form>
 
-                    <?= $i ?>
+    <?php if ($totalPages > 1): ?>
 
-                </a>
+        <nav>
 
-            </li>
+            <ul class="pagination justify-content-center">
 
-        <?php endfor; ?>
-        <li
-            class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
+                <?php
+                $keywordParam = "";
 
-            <?php if ($page >= $totalPages): ?>
+                if ($keyword != "") {
+                    $keywordParam = "&keyword=" . urlencode($keyword);
+                }
+                ?>
 
-                <span class="page-link">
-                    Sau
-                </span>
+                <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
 
-            <?php else: ?>
+                    <?php if ($page <= 1): ?>
 
-                <a
-                    class="page-link"
-                    href="?limit=<?= $limit ?>&page=<?= $page + 1 ?><?= $keywordParam ?>">
+                        <span class="page-link">
+                            Đầu
+                        </span>
 
-                    Sau
+                    <?php else: ?>
 
-                </a>
+                        <a
+                            class="page-link"
+                            href="?limit=<?= $limit ?>&page=1<?= $keywordParam ?>">
 
-            <?php endif; ?>
+                            Đầu
 
-        </li>
+                        </a>
 
-        <li
-            class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
+                    <?php endif; ?>
 
-            <?php if ($page >= $totalPages): ?>
+                </li>
 
-                <span class="page-link">
-                    Cuối
-                </span>
+                <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
 
-            <?php else: ?>
+                    <?php if ($page <= 1): ?>
 
-                <a
-                    class="page-link"
-                    href="?limit=<?= $limit ?>&page=<?= $totalPages ?><?= $keywordParam ?>">
+                        <span class="page-link">
+                            Trước
+                        </span>
 
-                    Cuối
+                    <?php else: ?>
 
-                </a>
+                        <a
+                            class="page-link"
+                            href="?limit=<?= $limit ?>&page=<?= $page - 1 ?><?= $keywordParam ?>">
 
-            <?php endif; ?>
+                            Trước
 
-        </li>
+                        </a>
 
-    </ul>
+                    <?php endif; ?>
 
-</nav>
+                </li>
+                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
 
-<?php endif; ?>
+                    <li
+                        class="page-item <?= $i == $page ? 'active' : '' ?>">
+
+                        <a
+                            class="page-link"
+                            href="?limit=<?= $limit ?>&page=<?= $i ?><?= $keywordParam ?>">
+
+                            <?= $i ?>
+
+                        </a>
+
+                    </li>
+
+                <?php endfor; ?>
+                <li
+                    class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
+
+                    <?php if ($page >= $totalPages): ?>
+
+                        <span class="page-link">
+                            Sau
+                        </span>
+
+                    <?php else: ?>
+
+                        <a
+                            class="page-link"
+                            href="?limit=<?= $limit ?>&page=<?= $page + 1 ?><?= $keywordParam ?>">
+
+                            Sau
+
+                        </a>
+
+                    <?php endif; ?>
+
+                </li>
+
+                <li
+                    class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
+
+                    <?php if ($page >= $totalPages): ?>
+
+                        <span class="page-link">
+                            Cuối
+                        </span>
+
+                    <?php else: ?>
+
+                        <a
+                            class="page-link"
+                            href="?limit=<?= $limit ?>&page=<?= $totalPages ?><?= $keywordParam ?>">
+
+                            Cuối
+
+                        </a>
+
+                    <?php endif; ?>
+
+                </li>
+
+            </ul>
+
+        </nav>
+
+    <?php endif; ?>
 
 
 </div>
 
-    </div>
+</div>
 
 </div>
 
@@ -545,6 +534,6 @@ ob_start();
 
 $content = ob_get_clean();
 
-include "../layouts/master.php";
+include __DIR__ . '/../layouts/master.php';
 
 ?>

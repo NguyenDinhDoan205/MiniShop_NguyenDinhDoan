@@ -1,15 +1,13 @@
 <?php
-
-class AuthMiddleware
+class GuestMiddleware
 {
     public static function handle()
     {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-
-        if (!isset($_SESSION["user"])) {
-            header("Location: /MiniShop_NguyenDinhDoan/views/admin/login.php");
+        if (isset($_SESSION["user"])) {
+            header("Location: dashboard.php");
             exit;
         }
     }

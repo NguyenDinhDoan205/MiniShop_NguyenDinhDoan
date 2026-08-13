@@ -38,7 +38,6 @@ class ProductDAO extends BaseDAO
 
                 $list[] = $product;
             }
-
         } catch (Exception $e) {
             throw $e;
         }
@@ -81,9 +80,9 @@ class ProductDAO extends BaseDAO
 
         return $list;
     }
-   
 
-   public function findById(int $id): ?Product
+
+    public function findById(int $id): ?Product
     {
         try {
 
@@ -129,7 +128,6 @@ class ProductDAO extends BaseDAO
 
                 return $product;
             }
-
         } catch (Exception $e) {
             throw $e;
         }
@@ -212,22 +210,67 @@ class ProductDAO extends BaseDAO
             );
 
             return $stmt->execute();
-
         } catch (Exception $e) {
             throw $e;
         }
     }
 
 
-    public function delete(int $id): bool
-{
-    $sql = "UPDATE products SET status = 0 WHERE id = ?";
+    public function delete($id)
+    {
+        // Bắt đầu transaction
+        $this->conn->begin_transaction();
 
-    $stmt = $this->prepare($sql);
-    $stmt->bind_param("i", $id);
+        try {
 
-    return $stmt->execute();
-}
+            // 1. Xóa chi tiết đơn hàng liên quan đến sản phẩm
+            $sqlOrderDetail = "DELETE FROM order_details WHERE product_id = ?";
+
+            $stmtOrderDetail = $this->conn->prepare($sqlOrderDetail);
+
+            if (!$stmtOrderDetail) {
+                throw new Exception($this->conn->error);
+            }
+
+            $stmtOrderDetail->bind_param("i", $id);
+            $stmtOrderDetail->execute();
+            $stmtOrderDetail->close();
+
+
+            // 2. Xóa hình ảnh liên quan đến sản phẩm
+            $sqlImage = "DELETE FROM product_images WHERE product_id = ?";
+
+            $stmtImage = $this->conn->prepare($sqlImage);
+
+            if (!$stmtImage) {
+                throw new Exception($this->conn->error);
+            }
+
+            $stmtImage->bind_param("i", $id);
+            $stmtImage->execute();
+            $stmtImage->close();
+
+            $sqlProduct = "DELETE FROM products WHERE id = ?";
+
+            $stmtProduct = $this->conn->prepare($sqlProduct);
+
+            if (!$stmtProduct) {
+                throw new Exception($this->conn->error);
+            }
+
+            $stmtProduct->bind_param("i", $id);
+            $stmtProduct->execute();
+            $stmtProduct->close();
+
+            $this->conn->commit();
+
+            return true;
+        } catch (Exception $e) {
+            $this->conn->rollback();
+
+            throw $e;
+        }
+    }
     public function paging(int $page = 1, int $limit = 10): array
     {
         $list = [];
@@ -323,7 +366,6 @@ class ProductDAO extends BaseDAO
 
                 $list[] = $product;
             }
-
         } catch (Exception $e) {
             throw $e;
         }

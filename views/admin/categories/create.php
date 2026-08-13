@@ -3,6 +3,7 @@
 
 require_once "../../../dao/CategoryDAO.php";
 require_once "../../../models/Category.php";
+require_once "../../../middleware/CsrfMiddleware.php";
 
 $pageTitle = "Thêm danh mục";
 
@@ -12,6 +13,7 @@ $error = "";
 $success = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        CsrfMiddleware::verify();   
 
     $catename = trim($_POST["catename"] ?? "");
     $slug = trim($_POST["slug"] ?? "");
@@ -20,11 +22,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($catename == "") {
 
         $error = "Vui lòng nhập tên danh mục.";
-
     } elseif ($slug == "") {
 
         $error = "Vui lòng nhập slug.";
-
     } else {
 
         $image = "";
@@ -43,11 +43,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if (!in_array($extension, $allowed)) {
 
                 $error = "Chỉ được upload file JPG, JPEG, PNG, GIF hoặc WEBP.";
-
             } elseif ($fileSize > 200 * 1024) {
 
                 $error = "Kích thước hình ảnh không được vượt quá 200KB.";
-
             } else {
 
                 $uploadDir = "../../../uploads/categories/";
@@ -80,7 +78,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 header("Location: index.php");
                 exit;
-
             } else {
 
                 $error = "Thêm danh mục thất bại.";
@@ -109,9 +106,13 @@ ob_start();
 
         <?php endif; ?>
 
-        <form
-            method="post"
-            enctype="multipart/form-data">
+        <form action="create.php" method="POST">
+
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="<?= htmlspecialchars($_SESSION["csrf_token"]) ?>">
+
 
             <div class="mb-3">
 

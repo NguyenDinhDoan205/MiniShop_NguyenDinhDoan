@@ -105,7 +105,7 @@ class OrderDAO extends BaseDAO
 
         return null;
     }
-     public function getPage(int $page, int $pageSize): array
+    public function getPage(int $page, int $pageSize): array
     {
         $list = [];
 
@@ -146,7 +146,7 @@ class OrderDAO extends BaseDAO
 
         return $list;
     }
-  
+
 
     public function insert(Order $order): bool
     {
@@ -168,7 +168,6 @@ class OrderDAO extends BaseDAO
             );
 
             return $stmt->execute();
-
         } catch (Exception $e) {
             throw $e;
         }
@@ -202,7 +201,6 @@ class OrderDAO extends BaseDAO
             );
 
             return $stmt->execute();
-
         } catch (Exception $e) {
             throw $e;
         }
@@ -219,7 +217,6 @@ class OrderDAO extends BaseDAO
             $stmt->bind_param("i", $id);
 
             return $stmt->execute();
-
         } catch (Exception $e) {
             throw $e;
         }

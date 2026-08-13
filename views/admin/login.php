@@ -1,52 +1,54 @@
 <?php
 
-require_once __DIR__ . "/../../models/User.php";
-session_start();
+require_once "../../dao/UserDAO.php";
+require_once "../../middleware/GuestMiddleware.php";
 
-require_once __DIR__ . "/../../dao/UserDAO.php";
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-$errors = [];
+GuestMiddleware::handle();
 
-$username = $_POST["username"] ?? "";
-$password = $_POST["password"] ?? "";
+$userDAO = new UserDAO();
+
+$error = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    // Kiểm tra username
-    if (empty($username)) {
-        $errors["username"] = "Vui lòng nhập tên đăng nhập.";
-    }
+    $username = trim($_POST["username"] ?? "");
+    $password = trim($_POST["password"] ?? "");
 
-    // Kiểm tra password
-    if (empty($password)) {
-        $errors["password"] = "Vui lòng nhập mật khẩu.";
-    }
+    if ($username === "" || $password === "") {
 
-    // Nếu không có lỗi thì tiến hành đăng nhập
-    if (empty($errors)) {
+        $error = "Vui lòng nhập đầy đủ thông tin.";
 
-        $userDAO = new UserDAO();
+    } else {
 
         $user = $userDAO->findByUsername($username);
 
-        // Không tìm thấy tài khoản
-        if (!$user) {
+        if ($user === null) {
 
-            $errors["username"] = "Tên đăng nhập không tồn tại.";
+            $error = "Tên đăng nhập hoặc mật khẩu không đúng.";
 
-        // Sai mật khẩu
-        } elseif (!password_verify($password, $user->password)) {
+        } elseif ($password !== $user->password) {
 
-            $errors["password"] = "Mật khẩu không chính xác.";
+            $error = "Tên đăng nhập hoặc mật khẩu không đúng.";
 
-        // Đăng nhập thành công
+        } elseif ((int)$user->status !== 1) {
+
+            $error = "Tài khoản đã bị khóa.";
+
         } else {
 
-            // Lưu User object vào session
+            /*
+             * Lưu User vào session
+             */
             $_SESSION["user"] = $user;
 
-            // Chuyển sang trang quản trị
-            header("Location: dashboard.php");
+            /*
+             * Đăng nhập thành công
+             */
+            header("Location: ../index.php");
             exit;
         }
     }
@@ -61,9 +63,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     <meta charset="UTF-8">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Đăng nhập quản trị</title>
+
 
     <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
@@ -72,7 +78,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 </head>
 
+
 <body class="bg-light">
+
 
 <div class="container">
 
@@ -80,33 +88,46 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         <div class="col-md-5">
 
-            <div class="card shadow">
+
+            <div class="card shadow border-0">
+
 
                 <div class="card-body p-4">
 
+
                     <h3 class="text-center mb-4">
-                        Đăng nhập
+                        Đăng nhập quản trị
                     </h3>
 
-                    <form action="login.php" method="POST">
+                    <form
+                        action="login.php"
+                        method="POST"
+                    >
 
-                      
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="<?= htmlspecialchars($_SESSION["csrf_token"]) ?>"
+                        >
                         <div class="mb-3">
 
                             <label class="form-label">
                                 Tên đăng nhập
                             </label>
 
+
                             <input
                                 type="text"
                                 name="username"
                                 value="<?= htmlspecialchars($username) ?>"
                                 class="form-control"
+                                placeholder="Nhập tên đăng nhập"
                             >
+
 
                             <?php if (isset($errors["username"])): ?>
 
-                                <div class="text-danger">
+                                <div class="text-danger mt-1">
                                     <?= htmlspecialchars($errors["username"]) ?>
                                 </div>
 
@@ -114,24 +135,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                         </div>
 
-                      
                         <div class="mb-3">
 
                             <label class="form-label">
                                 Mật khẩu
                             </label>
 
+
                             <input
                                 type="password"
                                 name="password"
                                 class="form-control"
                                 placeholder="Nhập mật khẩu"
-                                required
                             >
+
 
                             <?php if (isset($errors["password"])): ?>
 
-                                <div class="text-danger">
+                                <div class="text-danger mt-1">
                                     <?= htmlspecialchars($errors["password"]) ?>
                                 </div>
 
@@ -139,7 +160,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                         </div>
 
-             
                         <div class="mb-3 form-check">
 
                             <input
@@ -158,7 +178,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                         </div>
 
-               
                         <div class="d-grid">
 
                             <button
@@ -169,6 +188,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             </button>
 
                         </div>
+
 
                     </form>
 
@@ -181,6 +201,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     </div>
 
 </div>
+
 
 </body>
 

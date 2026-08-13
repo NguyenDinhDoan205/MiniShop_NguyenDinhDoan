@@ -1,9 +1,15 @@
 <?php
 
+require_once "../../../models/User.php";
 require_once "../../../dao/ProductDAO.php";
 require_once "../../../dao/CategoryDAO.php";
 require_once "../../../dao/BrandDAO.php";
 require_once "../../../models/Product.php";
+require_once "../../../middleware/CsrfMiddleware.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 $pageTitle = "Thêm sản phẩm";
 
@@ -17,7 +23,10 @@ $brands = $brandDAO->getAll();
 $error = "";
 $success = "";
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
+
+    CsrfMiddleware::verify();
 
     $categoryId = (int)($_POST["category_id"] ?? 0);
     $brandId = (int)($_POST["brand_id"] ?? 0);
@@ -30,42 +39,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $description = trim($_POST["description"] ?? "");
     $status = (int)($_POST["status"] ?? 1);
 
-   $slug = strtolower(trim($proname));
-
+    $slug = strtolower(trim($proname));
     $slug = preg_replace('/[^a-zA-Z0-9]+/', '-', $slug);
-
     $slug = trim($slug, '-');
-
     $slug .= "-" . time();
 
     if ($proname == "") {
 
         $error = "Tên sản phẩm không được để trống.";
-
     } elseif ($categoryId <= 0) {
 
         $error = "Vui lòng chọn danh mục.";
-
     } elseif ($brandId <= 0) {
 
         $error = "Vui lòng chọn thương hiệu.";
-
     } elseif ($price <= 0) {
 
         $error = "Giá sản phẩm phải lớn hơn 0.";
-
     } elseif ($quantity < 0) {
 
         $error = "Số lượng không hợp lệ.";
-
     }
 
     $image = "";
 
     if ($error == "") {
 
-        if (isset($_FILES["image"]) &&
-            $_FILES["image"]["error"] == 0) {
+        if (
+            isset($_FILES["image"]) &&
+            $_FILES["image"]["error"] == 0
+        ) {
 
             $uploadDir = "../../../uploads/";
 
@@ -74,73 +77,79 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             $target = $uploadDir . $imageName;
 
-            if (move_uploaded_file(
-                $_FILES["image"]["tmp_name"],
-                $target
-            )) {
+            if (
+                move_uploaded_file(
+                    $_FILES["image"]["tmp_name"],
+                    $target
+                )
+            ) {
 
                 $image = $imageName;
             }
         }
     }
+
     if ($error == "") {
 
-       $product = new Product(
-        $categoryId,
-        $brandId,
-        $proname,
-        $slug,
-        $price,
-        $discountPrice,
-        $quantity,
-        $image,
-        $description,
-        $status
-    );
-    $productId = $productDAO->insert($product);
+        $product = new Product(
+            $categoryId,
+            $brandId,
+            $proname,
+            $slug,
+            $price,
+            $discountPrice,
+            $quantity,
+            $image,
+            $description,
+            $status
+        );
 
-    if ($productId > 0) {
+        $productId = $productDAO->insert($product);
 
-        if (isset($_FILES["images"])) {
+        if ($productId > 0) {
 
-            $uploadDir = "../../../uploads/";
+            if (isset($_FILES["images"])) {
 
-            foreach ($_FILES["images"]["name"] as $key => $name) {
+                $uploadDir = "../../../uploads/";
 
-                if ($_FILES["images"]["error"][$key] != 0) {
-                    continue;
-                }
+                foreach ($_FILES["images"]["name"] as $key => $name) {
 
-                $imageName = time() . "_" . $key . "_" . basename($name);
+                    if ($_FILES["images"]["error"][$key] != 0) {
+                        continue;
+                    }
 
-                $target = $uploadDir . $imageName;
+                    $imageName =
+                        time() . "_" .
+                        $key . "_" .
+                        basename($name);
 
-                if (move_uploaded_file(
-                    $_FILES["images"]["tmp_name"][$key],
-                    $target
-                )) {
+                    $target = $uploadDir . $imageName;
 
-                    $productDAO->insertImage(
-                        $productId,
-                        $imageName
-                    );
+                    if (
+                        move_uploaded_file(
+                            $_FILES["images"]["tmp_name"][$key],
+                            $target
+                        )
+                    ) {
+
+                        $productDAO->insertImage(
+                            $productId,
+                            $imageName
+                        );
+                    }
                 }
             }
+
+            header("Location: index.php?success=1");
+            exit;
+        } else {
+
+            $error = "Không thể thêm sản phẩm.";
         }
-
-        header("Location: index.php?success=1");
-        exit;
-
-    } else {
-
-        $error = "Không thể thêm sản phẩm.";
-    }
     }
 }
 
-
 ob_start();
-
 ?>
 
 <h2 class="mb-4">
@@ -163,10 +172,13 @@ ob_start();
 
         <?php endif; ?>
 
+        <form action="create.php" method="POST">
 
-        <form
-            method="post"
-            enctype="multipart/form-data">
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="<?= htmlspecialchars($_SESSION["csrf_token"]) ?>">
+
 
             <div class="row">
 
@@ -440,92 +452,91 @@ ob_start();
 
 
 <script>
-document
-    .getElementById("mainImage")
-    .addEventListener("change", function () {
+    document
+        .getElementById("mainImage")
+        .addEventListener("change", function() {
 
-        const file = this.files[0];
+            const file = this.files[0];
 
-        const preview =
-            document.getElementById("mainPreview");
+            const preview =
+                document.getElementById("mainPreview");
 
-        const noImage =
-            document.getElementById("mainNoImage");
+            const noImage =
+                document.getElementById("mainNoImage");
 
-        if (file) {
+            if (file) {
 
-            const reader =
-                new FileReader();
+                const reader =
+                    new FileReader();
 
-            reader.onload = function (e) {
+                reader.onload = function(e) {
 
-                preview.src =
-                    e.target.result;
+                    preview.src =
+                        e.target.result;
+
+                    preview.style.display =
+                        "block";
+
+                    noImage.style.display =
+                        "none";
+                };
+
+                reader.readAsDataURL(file);
+
+            } else {
 
                 preview.style.display =
-                    "block";
+                    "none";
 
                 noImage.style.display =
-                    "none";
-            };
+                    "block";
+            }
 
-            reader.readAsDataURL(file);
+        });
 
-        } else {
+    document
+        .getElementById("galleryImages")
+        .addEventListener("change", function() {
 
-            preview.style.display =
-                "none";
+            const preview =
+                document.getElementById("galleryPreview");
 
-            noImage.style.display =
-                "block";
-        }
+            preview.innerHTML = "";
 
-    });
+            const files = this.files;
 
-document
-    .getElementById("galleryImages")
-    .addEventListener("change", function () {
+            for (let i = 0; i < files.length; i++) {
 
-        const preview =
-            document.getElementById("galleryPreview");
+                const file = files[i];
 
-        preview.innerHTML = "";
+                const reader =
+                    new FileReader();
 
-        const files = this.files;
+                reader.onload = function(e) {
 
-        for (let i = 0; i < files.length; i++) {
+                    const img =
+                        document.createElement("img");
 
-            const file = files[i];
+                    img.src =
+                        e.target.result;
 
-            const reader =
-                new FileReader();
+                    img.width = 120;
 
-            reader.onload = function (e) {
+                    img.height = 120;
 
-                const img =
-                    document.createElement("img");
+                    img.style.objectFit =
+                        "cover";
 
-                img.src =
-                    e.target.result;
+                    img.className =
+                        "img-thumbnail";
 
-                img.width = 120;
+                    preview.appendChild(img);
+                };
 
-                img.height = 120;
+                reader.readAsDataURL(file);
+            }
 
-                img.style.objectFit =
-                    "cover";
-
-                img.className =
-                    "img-thumbnail";
-
-                preview.appendChild(img);
-            };
-
-            reader.readAsDataURL(file);
-        }
-
-    });
-
+        });
 </script>
 
 

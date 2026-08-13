@@ -1,9 +1,14 @@
 <?php
 
-$user = $_SESSION["user"];
+require_once __DIR__ . "/../../../models/User.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+$user = $_SESSION["user"] ?? null;
 
 ?>
-
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm py-2">
     <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
 
