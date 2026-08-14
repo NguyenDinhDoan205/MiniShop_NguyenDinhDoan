@@ -21,7 +21,7 @@ class User
         string $email = "",
         string $phone = "",
         string $address = "",
-        int $role = 0,
+        int $role = 1,
         int $status = 1,
         string $createdAt = "",
         string $updatedAt = ""

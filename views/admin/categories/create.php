@@ -1,9 +1,21 @@
-```php
 <?php
 
+require_once "../../../models/User.php";
+require_once "../../../middleware/RoleMiddleware.php";
+require_once "../../../middleware/CsrfMiddleware.php";
 require_once "../../../dao/CategoryDAO.php";
 require_once "../../../models/Category.php";
-require_once "../../../middleware/CsrfMiddleware.php";
+
+/*
+ * Chỉ Admin mới được thêm Category
+ * role = 1
+ */
+RoleMiddleware::requireRole(1);
+
+/*
+ * Tạo CSRF Token
+ */
+$csrfToken = CsrfMiddleware::generateToken();
 
 $pageTitle = "Thêm danh mục";
 
@@ -12,59 +24,117 @@ $categoryDAO = new CategoryDAO();
 $error = "";
 $success = "";
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        CsrfMiddleware::verify();   
+/*
+ * Xử lý POST
+ */
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
+    /*
+     * Kiểm tra CSRF
+     */
+    CsrfMiddleware::verify();
+
+    /*
+     * Lấy dữ liệu form
+     */
     $catename = trim($_POST["catename"] ?? "");
     $slug = trim($_POST["slug"] ?? "");
-    $status = isset($_POST["status"]) ? (int)$_POST["status"] : 1;
+    $status = isset($_POST["status"])
+        ? (int)$_POST["status"]
+        : 1;
 
-    if ($catename == "") {
+    /*
+     * Validate
+     */
+    if ($catename === "") {
 
         $error = "Vui lòng nhập tên danh mục.";
-    } elseif ($slug == "") {
+
+    } elseif ($slug === "") {
 
         $error = "Vui lòng nhập slug.";
+
     } else {
 
         $image = "";
 
-        if (isset($_FILES["image"]) && $_FILES["image"]["error"] == 0) {
+        /*
+         * Upload hình ảnh
+         */
+        if (
+            isset($_FILES["image"]) &&
+            $_FILES["image"]["error"] === 0
+        ) {
 
             $fileName = $_FILES["image"]["name"];
             $fileTmp = $_FILES["image"]["tmp_name"];
             $fileSize = $_FILES["image"]["size"];
+
             $extension = strtolower(
                 pathinfo($fileName, PATHINFO_EXTENSION)
             );
 
-            $allowed = ["jpg", "jpeg", "png", "gif", "webp"];
+            $allowed = [
+                "jpg",
+                "jpeg",
+                "png",
+                "gif",
+                "webp"
+            ];
 
+            /*
+             * Kiểm tra extension
+             */
             if (!in_array($extension, $allowed)) {
 
-                $error = "Chỉ được upload file JPG, JPEG, PNG, GIF hoặc WEBP.";
+                $error =
+                    "Chỉ được upload file JPG, JPEG, PNG, GIF hoặc WEBP.";
+
+            /*
+             * Kiểm tra dung lượng
+             */
             } elseif ($fileSize > 200 * 1024) {
 
-                $error = "Kích thước hình ảnh không được vượt quá 200KB.";
+                $error =
+                    "Kích thước hình ảnh không được vượt quá 200KB.";
+
             } else {
 
+                /*
+                 * Thư mục upload
+                 */
                 $uploadDir = "../../../uploads/categories/";
 
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0777, true);
                 }
-                $image = time() . "_" . $fileName;
-                if (!move_uploaded_file(
-                    $fileTmp,
-                    $uploadDir . $image
-                )) {
+
+                /*
+                 * Đổi tên file
+                 */
+                $image =
+                    time() . "_" .
+                    basename($fileName);
+
+                /*
+                 * Di chuyển file
+                 */
+                if (
+                    !move_uploaded_file(
+                        $fileTmp,
+                        $uploadDir . $image
+                    )
+                ) {
 
                     $error = "Upload hình ảnh thất bại.";
                 }
             }
         }
 
-        if ($error == "") {
+        /*
+         * Nếu không có lỗi thì thêm Category
+         */
+        if ($error === "") {
 
             $category = new Category(
                 $catename,
@@ -78,6 +148,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 header("Location: index.php");
                 exit;
+
             } else {
 
                 $error = "Thêm danh mục thất bại.";
@@ -98,21 +169,26 @@ ob_start();
 
     <div class="card-body">
 
-        <?php if ($error != ""): ?>
+        <?php if ($error !== ""): ?>
 
             <div class="alert alert-danger">
-                <?= $error ?>
+                <?= htmlspecialchars($error) ?>
             </div>
 
         <?php endif; ?>
 
-        <form action="create.php" method="POST">
+        <form
+            action="create.php"
+            method="POST"
+            enctype="multipart/form-data"
+        >
 
+            <!-- CSRF TOKEN -->
             <input
                 type="hidden"
                 name="csrf_token"
-                value="<?= htmlspecialchars($_SESSION["csrf_token"]) ?>">
-
+                value="<?= htmlspecialchars($csrfToken) ?>"
+            >
 
             <div class="mb-3">
 
@@ -124,7 +200,11 @@ ob_start();
                     type="text"
                     name="catename"
                     class="form-control"
-                    value="<?= htmlspecialchars($_POST["catename"] ?? "") ?>">
+                    value="<?= htmlspecialchars(
+                        $_POST["catename"] ?? ""
+                    ) ?>"
+                    placeholder="Nhập tên danh mục"
+                >
 
             </div>
 
@@ -138,7 +218,11 @@ ob_start();
                     type="text"
                     name="slug"
                     class="form-control"
-                    value="<?= htmlspecialchars($_POST["slug"] ?? "") ?>">
+                    value="<?= htmlspecialchars(
+                        $_POST["slug"] ?? ""
+                    ) ?>"
+                    placeholder="Nhập slug"
+                >
 
             </div>
 
@@ -152,9 +236,15 @@ ob_start();
                     type="file"
                     name="image"
                     class="form-control"
-                    accept="image/*">
+                    accept="image/*"
+                >
+
+                <small class="text-muted">
+                    JPG, JPEG, PNG, GIF, WEBP - tối đa 200KB
+                </small>
 
             </div>
+            
 
             <div class="mb-3">
 
@@ -164,7 +254,8 @@ ob_start();
 
                 <select
                     name="status"
-                    class="form-select">
+                    class="form-select"
+                >
 
                     <option value="1">
                         Hiển thị
@@ -180,7 +271,8 @@ ob_start();
 
             <button
                 type="submit"
-                class="btn btn-success">
+                class="btn btn-success"
+            >
 
                 <i class="bi bi-save"></i>
                 Lưu
@@ -189,10 +281,9 @@ ob_start();
 
             <a
                 href="index.php"
-                class="btn btn-secondary">
-
+                class="btn btn-secondary"
+            >
                 Quay lại
-
             </a>
 
         </form>
@@ -208,4 +299,3 @@ $content = ob_get_clean();
 include "../layouts/master.php";
 
 ?>
-```

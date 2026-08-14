@@ -1,5 +1,9 @@
 <?php
 
+require_once "../../../middleware/RoleMiddleware.php";
+
+RoleMiddleware::requireRole(1);
+
 require_once "../../../models/User.php";
 require_once "../../../dao/ProductDAO.php";
 require_once "../../../dao/CategoryDAO.php";

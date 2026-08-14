@@ -1,44 +1,60 @@
 <?php
 
+require_once __DIR__ . "/../models/User.php";
+require_once __DIR__ . "/RememberMeMiddleware.php";
+
 class RoleMiddleware
 {
-    public static function admin()
+    public static function requireRole(int $requiredRole)
     {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        /*
+         * Nếu Session mất thì thử khôi phục
+         * bằng Cookie Remember Me
+         */
+        RememberMeMiddleware::handle();
+
+        /*
+         * Không đăng nhập
+         */
         if (!isset($_SESSION["user"])) {
 
-            header("Location: ../login.php");
+            header(
+                "Location: /MiniShop_NguyenDinhDoan/views/admin/login.php"
+            );
 
             exit;
         }
 
         $user = $_SESSION["user"];
 
-        if ((int)$user->role !== 1) {
+        /*
+         * Kiểm tra User object
+         */
+        if (!($user instanceof User)) {
 
-            http_response_code(403);
+            unset($_SESSION["user"]);
 
-            die("
-                <div style='
-                    margin: 50px auto;
-                    max-width: 600px;
-                    text-align: center;
-                    font-family: Arial;
-                '>
+            header(
+                "Location: /MiniShop_NguyenDinhDoan/views/admin/login.php"
+            );
 
-                    <h1>403</h1>
+            exit;
+        }
 
-                    <h2>Từ chối truy cập</h2>
+        /*
+         * Kiểm tra quyền
+         */
+        if ((int)$user->role !== $requiredRole) {
 
-                    <p>
-                        Bạn không có quyền thực hiện chức năng này.
-                    </p>
+            header(
+                "Location: /MiniShop_NguyenDinhDoan/views/admin/403.php"
+            );
 
-                    <a href='../index.php'>
-                        Quay lại
-                    </a>
-
-                </div>
-            ");
+            exit;
         }
     }
 }

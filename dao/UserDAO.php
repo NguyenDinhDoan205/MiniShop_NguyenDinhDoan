@@ -37,15 +37,14 @@ class UserDAO extends BaseDAO
 
                 $list[] = $user;
             }
-
         } catch (Exception $e) {
             throw $e;
         }
 
         return $list;
     }
-   
-   
+
+
 
     public function findById(int $id): ?User
     {
@@ -78,7 +77,6 @@ class UserDAO extends BaseDAO
 
                 return $user;
             }
-
         } catch (Exception $e) {
             throw $e;
         }
@@ -110,12 +108,11 @@ class UserDAO extends BaseDAO
             );
 
             return $stmt->execute();
-
         } catch (Exception $e) {
             throw $e;
         }
     }
-   
+
 
     public function update(User $user): bool
     {
@@ -149,7 +146,6 @@ class UserDAO extends BaseDAO
             );
 
             return $stmt->execute();
-
         } catch (Exception $e) {
             throw $e;
         }
@@ -164,18 +160,90 @@ class UserDAO extends BaseDAO
             $stmt->bind_param("i", $id);
 
             return $stmt->execute();
-
         } catch (Exception $e) {
             throw $e;
         }
     }
     public function findByUsername($username)
     {
-        $sql = "SELECT * FROM users WHERE username = ?";
+        $sql = "SELECT * FROM users WHERE username = ? LIMIT 1";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        if ($result->num_rows === 0) {
+            return null;
+        }
+
+        $row = $result->fetch_assoc();
+
+        $user = new User();
+
+        $user->id = (int)$row["id"];
+        $user->fullname = $row["fullname"];
+        $user->username = $row["username"];
+        $user->password = $row["password"];
+        $user->email = $row["email"];
+        $user->phone = $row["phone"];
+        $user->address = $row["address"];
+
+        $user->role = (int)$row["role"];
+        $user->status = (int)$row["status"];
+
+        if (isset($row["created_at"])) {
+            $user->createdAt = $row["created_at"];
+        }
+
+        if (isset($row["updated_at"])) {
+            $user->updatedAt = $row["updated_at"];
+        }
+
+        return $user;
+    }
+    public function saveRememberToken(
+    int $userId,
+    string $token,
+    string $expiry
+    ) {
+        $sql = "
+            UPDATE users
+            SET
+                remember_token = ?,
+                remember_token_expiry = ?
+            WHERE id = ?
+        ";
 
         $stmt = $this->conn->prepare($sql);
 
-        $stmt->bind_param("s", $username);
+        $stmt->bind_param(
+            "ssi",
+            $token,
+            $expiry,
+            $userId
+        );
+
+        return $stmt->execute();
+    }
+    public function findByRememberToken($token)
+    {
+        $sql = "
+        SELECT *
+        FROM users
+        WHERE remember_token = ?
+        AND remember_token_expiry > NOW()
+        AND status = 1
+        LIMIT 1
+    ";
+
+        $stmt = $this->conn->prepare($sql);
+
+        $stmt->bind_param(
+            "s",
+            $token
+        );
 
         $stmt->execute();
 
@@ -187,22 +255,45 @@ class UserDAO extends BaseDAO
 
         $row = $result->fetch_assoc();
 
-        $user = new User(
-            $row["fullname"],
-            $row["username"],
-            $row["password"],
-            $row["email"],
-            $row["phone"],
-            $row["address"],
-            (int)$row["role"],
-            (int)$row["status"],
-            $row["created_at"] ?? "",
-            $row["updated_at"] ?? ""
-        );
+        $user = new User();
 
         $user->id = (int)$row["id"];
+        $user->fullname = $row["fullname"];
+        $user->username = $row["username"];
+        $user->password = $row["password"];
+        $user->email = $row["email"];
+        $user->phone = $row["phone"];
+        $user->address = $row["address"];
+        $user->role = (int)$row["role"];
+        $user->status = (int)$row["status"];
+
+        if (isset($row["created_at"])) {
+            $user->createdAt = $row["created_at"];
+        }
+
+        if (isset($row["updated_at"])) {
+            $user->updatedAt = $row["updated_at"];
+        }
 
         return $user;
     }
-    
+    public function clearRememberToken(int $userId)
+    {
+        $sql = "
+        UPDATE users
+        SET
+            remember_token = NULL,
+            remember_token_expiry = NULL
+        WHERE id = ?
+    ";
+
+        $stmt = $this->conn->prepare($sql);
+
+        $stmt->bind_param(
+            "i",
+            $userId
+        );
+
+        return $stmt->execute();
+    }
 }

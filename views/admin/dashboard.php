@@ -1,8 +1,14 @@
 <?php
 
 require_once __DIR__ . "/../../models/User.php";
+require_once "../../middleware/RememberMeMiddleware.php";
+require_once "../../middleware/RoleMiddleware.php";
 
-session_start();
+RememberMeMiddleware::handle();
+
+RoleMiddleware::requireRole(1);
+
+$user = $_SESSION["user"];
 
 if (!isset($_SESSION["user"])) {
     header("Location: login.php");
@@ -91,7 +97,7 @@ ob_start();
                 <h2><?= $totalUser ?></h2>
             </div>
              <div class="card-footer bg-white border-0 pt-0 text-center">
-                <a href="user.php" class="stat-link">Xem chi tiết</a>
+                <a href="../admin/users/index.php" class="stat-link">Xem chi tiết</a>
             </div>
         </div>
     </div>
@@ -106,7 +112,7 @@ ob_start();
                 <h2><?= $totalProduct ?></h2>
             </div>
              <div class="card-footer bg-white border-0 pt-0 text-center">
-                <a href="products.php" class="stat-link">Xem chi tiết</a>
+                <a href="../admin/products/index.php" class="stat-link">Xem chi tiết</a>
             </div>
             
         </div>
@@ -120,7 +126,7 @@ ob_start();
                 <h2><?= $totalOrder ?></h2>
             </div>
              <div class="card-footer bg-white border-0 pt-0 text-center">
-                <a href="order.php" class="stat-link">Xem chi tiết</a>
+                <a href="../admin/orders/index.php" class="stat-link">Xem chi tiết</a>
             </div>
         </div>
     </div>
@@ -134,7 +140,7 @@ ob_start();
                 
             </div>
             <div class="card-footer bg-white border-0 pt-0 text-center">
-                <a href="customer.php" class="stat-link">Xem chi tiết</a>
+                <a href="../admin/customers/index.php" class="stat-link">Xem chi tiết</a>
             </div>
         </div>
          

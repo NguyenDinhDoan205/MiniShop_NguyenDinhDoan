@@ -447,82 +447,134 @@ class ProductDAO extends BaseDAO
 
         return $stmt->execute();
     }
-    public function getPage(int $limit, int $offset, string $keyword = "")
-    {
-        $sql = "SELECT
-                    p.id,
-                    p.category_id,
-                    p.brand_id,
-                    p.proname,
-                    p.slug,
-                    p.price,
-                    p.discount_price,
-                    p.quantity,
-                    p.image,
-                    p.description,
-                    p.status,
-                    p.created_at,
-                    p.updated_at,
-                    c.catename,
-                    b.brandname
+   public function getPage(
+    int $limit,
+    int $offset,
+    string $keyword = "",
+    string $sort = "name_asc"
+) {
+    /*
+     * Xác định kiểu sắp xếp
+     */
+    switch ($sort) {
 
-                FROM products p
+        case "name_desc":
+            $orderBy = "p.proname DESC";
+            break;
 
-                INNER JOIN categories c
-                    ON p.category_id = c.id
+        case "price_asc":
+            $orderBy = "p.price ASC";
+            break;
 
-                INNER JOIN brands b
-                    ON p.brand_id = b.id
+        case "price_desc":
+            $orderBy = "p.price DESC";
+            break;
 
-                WHERE p.proname LIKE ?
+        case "quantity_asc":
+            $orderBy = "p.quantity ASC";
+            break;
 
-                ORDER BY p.proname
+        case "quantity_desc":
+            $orderBy = "p.quantity DESC";
+            break;
 
-                LIMIT ? OFFSET ?";
+        case "name_asc":
+        default:
+            $orderBy = "p.proname ASC";
+            break;
+    }
 
-        $stmt = $this->conn->prepare($sql);
 
-        $keyword = "%$keyword%";
+    $sql = "SELECT
+                p.id,
+                p.category_id,
+                p.brand_id,
+                p.proname,
+                p.slug,
+                p.price,
+                p.discount_price,
+                p.quantity,
+                p.image,
+                p.description,
+                p.status,
+                p.created_at,
+                p.updated_at,
+                c.catename,
+                b.brandname
 
-        $stmt->bind_param(
-            "sii",
-            $keyword,
-            $limit,
-            $offset
+            FROM products p
+
+            INNER JOIN categories c
+                ON p.category_id = c.id
+
+            INNER JOIN brands b
+                ON p.brand_id = b.id
+
+            WHERE p.proname LIKE ?
+
+            ORDER BY $orderBy
+
+            LIMIT ? OFFSET ?";
+
+
+    $stmt = $this->conn->prepare($sql);
+
+    if (!$stmt) {
+        die("Lỗi SQL: " . $this->conn->error);
+    }
+
+
+    $keyword = "%$keyword%";
+
+
+    $stmt->bind_param(
+        "sii",
+        $keyword,
+        $limit,
+        $offset
+    );
+
+
+    $stmt->execute();
+
+
+    $result = $stmt->get_result();
+
+
+    $products = [];
+
+
+    while ($row = $result->fetch_assoc()) {
+
+        $product = new Product(
+            (int)$row["category_id"],
+            (int)$row["brand_id"],
+            $row["proname"],
+            $row["slug"],
+            (float)$row["price"],
+            (float)$row["discount_price"],
+            (int)$row["quantity"],
+            $row["image"],
+            $row["description"],
+            (int)$row["status"]
         );
 
-        $stmt->execute();
 
-        $result = $stmt->get_result();
+        $product->id = (int)$row["id"];
 
-        $products = [];
+        $product->catename = $row["catename"];
 
-        while ($row = $result->fetch_assoc()) {
+        $product->brandname = $row["brandname"];
 
-            $product = new Product(
-                (int)$row["category_id"],
-                (int)$row["brand_id"],
-                $row["proname"],
-                $row["slug"],
-                (float)$row["price"],
-                (float)$row["discount_price"],
-                (int)$row["quantity"],
-                $row["image"],
-                $row["description"],
-                (int)$row["status"]
-            );
+        $product->createdAt = $row["created_at"];
 
-            $product->id = (int)$row["id"];
+        $product->updatedAt = $row["updated_at"];
 
-            $product->catename = $row["catename"];
-            $product->brandname = $row["brandname"];
 
-            $product->createdAt = $row["created_at"];
-            $product->updatedAt = $row["updated_at"];
-
-            $products[] = $product;
-        }
-
-        return $products;
+        $products[] = $product;
     }
+
+
+    return $products;
+}
 }

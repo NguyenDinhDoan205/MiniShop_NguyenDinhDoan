@@ -1,5 +1,9 @@
 <?php
 
+require_once "../../../middleware/RoleMiddleware.php";
+
+RoleMiddleware::requireRole(1);
+
 require_once "../../../dao/ProductDAO.php";
 
 $pageTitle = "Chi tiết sản phẩm";
