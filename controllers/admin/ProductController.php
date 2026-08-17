@@ -11,81 +11,48 @@ class ProductController
 {
     private ProductDAO $productDAO;
 
+    private CategoryDAO $categoryDAO;
+
+    private BrandDAO $brandDAO;
+
     public function __construct()
     {
         $this->productDAO = new ProductDAO();
+
+        $this->categoryDAO = new CategoryDAO();
+
+        $this->brandDAO = new BrandDAO();
     }
 
-    public function index(): array
+   public function index()
     {
-        $limit = (int)($_GET["limit"] ?? 10);
+        // Gán dữ liệu cho tiêu đề trang
+        $pageTitle = "Danh sách sản phẩm";
+        
+        $dao = new ProductDAO();
 
-        if (!in_array($limit, [10, 20, 30])) {
-            $limit = 10;
+        // Xóa sản phẩm nếu có Request POST
+        if (isset($_POST["btnDelete"])) {
+            // Yêu cầu Lab 11 không nhắc vụ CSRF ở Controller lúc này, nhưng để nguyên logic cũ
+            $dao->delete((int)$_POST["id"]);
         }
 
-        $page = (int)($_GET["page"] ?? 1);
-
-        if ($page < 1) {
-            $page = 1;
-        }
-
+        // Đọc request từ URL
         $keyword = trim($_GET["keyword"] ?? "");
+        $limit = (int)($_GET["limit"] ?? 10);
+        $page = (int)($_GET["page"] ?? 1);
+        $sort = trim($_GET["sort"] ?? "");
 
-        $sort = $_GET["sort"] ?? "name_asc";
-
-        $allowedSort = [
-            "name_asc",
-            "name_desc",
-            "price_asc",
-            "price_desc",
-            "quantity_asc",
-            "quantity_desc"
-        ];
-
-        if (!in_array($sort, $allowedSort)) {
-            $sort = "name_asc";
-        }
-
+        // Xử lý offset
         $offset = ($page - 1) * $limit;
+        
+        // Gọi Dao
+        $totalRecords = $dao->count("products", "proname", $keyword);
+        $totalPages = ceil($totalRecords / $limit);
+        $products = $dao->getPage($limit, $offset, $keyword, $sort);
 
-        $products = $this->productDAO->getPage(
-            $limit,
-            $offset,
-            $keyword,
-            $sort
-        );
-        if ($keyword !== "") {
-            $totalRecords = $this->productDAO->count(
-                "products",
-                "proname",
-                $keyword
-            );
-        } else {
-            $totalRecords = $this->productDAO->count(
-                "products"
-            );
-        }
-
-        $totalPages = 0;
-
-        if ($totalRecords > 0) {
-            $totalPages = (int)ceil($totalRecords / $limit);
-        }
-
-        if ($totalPages > 0 && $page > $totalPages) {
-            $page = $totalPages;
-        }
-
-        return [
-            "products" => $products,
-            "limit" => $limit,
-            "page" => $page,
-            "keyword" => $keyword,
-            "sort" => $sort,
-            "totalRecords" => $totalRecords,
-            "totalPages" => $totalPages
-        ];
+        // Gọi View
+        require __DIR__ . "/../../views/admin/products/index.php";
     }
 
 public function edit(): array

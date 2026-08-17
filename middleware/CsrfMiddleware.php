@@ -25,14 +25,15 @@ class CsrfMiddleware
             session_start();
         }
 
-        $sessionToken = $_SESSION["csrf_token"] ?? "";
-
-        $requestToken = $_POST["csrf_token"] ?? "";
+        $token = $_POST["csrf_token"] ?? "";
 
         if (
-            empty($sessionToken) ||
-            empty($requestToken) ||
-            !hash_equals($sessionToken, $requestToken)
+            empty($token) ||
+            empty($_SESSION["csrf_token"]) ||
+            !hash_equals(
+                $_SESSION["csrf_token"],
+                $token
+            )
         ) {
             die("CSRF Token không hợp lệ.");
         }

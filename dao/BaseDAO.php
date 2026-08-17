@@ -1,7 +1,9 @@
 <?php
+
 namespace DAO;
 
 use Config\Database;
+
 
 class BaseDAO extends Database
 {

@@ -1,9 +1,8 @@
 <?php
 
 namespace DAO;
+
 use Models\Product;
-
-
 
 class ProductDAO extends BaseDAO
 {
@@ -41,39 +40,41 @@ class ProductDAO extends BaseDAO
 
                 $list[] = $product;
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
 
         return $list;
     }
+
     public function count(
-    string $table,
-    string $column = "",
-    string $keyword = ""
-): int {
+        string $table,
+        string $column = "",
+        string $keyword = ""
+    ): int {
 
-    $sql = "SELECT COUNT(*) AS total FROM {$table}";
+        $sql = "SELECT COUNT(*) AS total FROM {$table}";
 
-    if ($keyword !== "") {
-        $sql .= " WHERE {$column} LIKE ?";
+        if ($keyword !== "") {
+            $sql .= " WHERE {$column} LIKE ?";
+        }
+
+        $stmt = $this->conn->prepare($sql);
+
+        if ($keyword !== "") {
+            $search = "%" . $keyword . "%";
+            $stmt->bind_param("s", $search);
+        }
+
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        $row = $result->fetch_assoc();
+
+        return (int)($row["total"] ?? 0);
     }
 
-    $stmt = $this->conn->prepare($sql);
-
-    if ($keyword !== "") {
-        $search = "%" . $keyword . "%";
-        $stmt->bind_param("s", $search);
-    }
-
-    $stmt->execute();
-
-    $result = $stmt->get_result();
-
-    $row = $result->fetch_assoc();
-
-    return (int)($row["total"] ?? 0);
-}
     public function latest(int $limit = 5): array
     {
         $list = [];
@@ -110,7 +111,6 @@ class ProductDAO extends BaseDAO
 
         return $list;
     }
-
 
     public function findById(int $id): ?Product
     {
@@ -158,13 +158,12 @@ class ProductDAO extends BaseDAO
 
                 return $product;
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
 
         return null;
     }
-
 
     public function insert(Product $product): int
     {
@@ -240,11 +239,10 @@ class ProductDAO extends BaseDAO
             );
 
             return $stmt->execute();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
-
 
     public function delete($id)
     {
@@ -256,18 +254,19 @@ class ProductDAO extends BaseDAO
             $stmtOrderDetail = $this->conn->prepare($sqlOrderDetail);
 
             if (!$stmtOrderDetail) {
-                throw new Exception($this->conn->error);
+                throw new \Exception($this->conn->error);
             }
 
             $stmtOrderDetail->bind_param("i", $id);
             $stmtOrderDetail->execute();
             $stmtOrderDetail->close();
+
             $sqlImage = "DELETE FROM product_images WHERE product_id = ?";
 
             $stmtImage = $this->conn->prepare($sqlImage);
 
             if (!$stmtImage) {
-                throw new Exception($this->conn->error);
+                throw new \Exception($this->conn->error);
             }
 
             $stmtImage->bind_param("i", $id);
@@ -279,7 +278,7 @@ class ProductDAO extends BaseDAO
             $stmtProduct = $this->conn->prepare($sqlProduct);
 
             if (!$stmtProduct) {
-                throw new Exception($this->conn->error);
+                throw new \Exception($this->conn->error);
             }
 
             $stmtProduct->bind_param("i", $id);
@@ -289,12 +288,13 @@ class ProductDAO extends BaseDAO
             $this->conn->commit();
 
             return true;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->conn->rollback();
 
             throw $e;
         }
     }
+
     public function paging(int $page = 1, int $limit = 10): array
     {
         $list = [];
@@ -390,12 +390,13 @@ class ProductDAO extends BaseDAO
 
                 $list[] = $product;
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
 
         return $list;
     }
+
     public function insertImage(int $productId, string $image): bool
     {
         $sql = "INSERT INTO product_images (product_id, image)
@@ -407,6 +408,7 @@ class ProductDAO extends BaseDAO
 
         return $stmt->execute();
     }
+
     public function getImagesByProductId(int $productId): array
     {
         $list = [];
@@ -430,6 +432,7 @@ class ProductDAO extends BaseDAO
 
         return $list;
     }
+
     public function deleteImage(int $id): bool
     {
         $sql = "SELECT image
@@ -454,6 +457,7 @@ class ProductDAO extends BaseDAO
         if (file_exists($file)) {
             unlink($file);
         }
+
         $sql = "DELETE FROM product_images WHERE id = ?";
 
         $stmt = $this->prepare($sql);
@@ -462,6 +466,7 @@ class ProductDAO extends BaseDAO
 
         return $stmt->execute();
     }
+
     public function updateStatus($id, $status)
     {
         $sql = "UPDATE products SET status = ? WHERE id = ?";
@@ -471,6 +476,7 @@ class ProductDAO extends BaseDAO
 
         return $stmt->execute();
     }
+
     public function getPage(
         int $limit,
         int $offset,
@@ -506,7 +512,6 @@ class ProductDAO extends BaseDAO
                 break;
         }
 
-
         $sql = "SELECT
                 p.id,
                 p.category_id,
@@ -538,16 +543,13 @@ class ProductDAO extends BaseDAO
 
             LIMIT ? OFFSET ?";
 
-
         $stmt = $this->conn->prepare($sql);
 
         if (!$stmt) {
             die("Lỗi SQL: " . $this->conn->error);
         }
 
-
         $keyword = "%$keyword%";
-
 
         $stmt->bind_param(
             "sii",
@@ -556,15 +558,11 @@ class ProductDAO extends BaseDAO
             $offset
         );
 
-
         $stmt->execute();
-
 
         $result = $stmt->get_result();
 
-
         $products = [];
-
 
         while ($row = $result->fetch_assoc()) {
 
@@ -581,21 +579,14 @@ class ProductDAO extends BaseDAO
                 (int)$row["status"]
             );
 
-
             $product->id = (int)$row["id"];
-
             $product->catename = $row["catename"];
-
             $product->brandname = $row["brandname"];
-
             $product->createdAt = $row["created_at"];
-
             $product->updatedAt = $row["updated_at"];
-
 
             $products[] = $product;
         }
-
 
         return $products;
     }
