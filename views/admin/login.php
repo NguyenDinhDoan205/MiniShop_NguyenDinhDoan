@@ -1,99 +1,13 @@
 <?php
-
-require_once "../../models/User.php";
-require_once "../../dao/UserDAO.php";
-require_once "../../middleware/GuestMiddleware.php";
-require_once "../../middleware/CsrfMiddleware.php";
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+if (!defined('APP_ENTRY')) {
+    header("Location: /MiniShop_NguyenDinhDoan/index.php");
+    exit;
 }
 
-GuestMiddleware::handle();
-
-$userDAO = new UserDAO();
-
-$username = "";
-$password = "";
-$error = "";
-$csrfToken = CsrfMiddleware::generateToken();
-$errors = [
-    "username" => "",
-    "password" => ""
-];
-if (!isset($_SESSION["csrf_token"])) {
-    $_SESSION["csrf_token"] = bin2hex(random_bytes(32));
-}
-
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-
-    CsrfMiddleware::verify();
-
-    $username = trim($_POST["username"] ?? "");
-    $password = trim($_POST["password"] ?? "");
-
-    $remember = isset($_POST["remember"]);
-
-    if ($username === "" || $password === "") {
-
-        $error = "Vui lòng nhập đầy đủ thông tin.";
-    } else {
-
-        $user = $userDAO->findByUsername($username);
-
-        if ($user === null) {
-
-            $error = "Tên đăng nhập hoặc mật khẩu không đúng.";
-        } elseif ($password !== $user->password) {
-
-            $error = "Tên đăng nhập hoặc mật khẩu không đúng.";
-        } elseif ((int)$user->status !== 1) {
-
-            $error = "Tài khoản đã bị khóa.";
-        } elseif ((int)$user->role !== 1) {
-
-            $error =
-                "Tài khoản của bạn không có quyền truy cập trang quản trị.";
-        } else {
-            $_SESSION["user"] = $user;
-
-            if ($remember) {
-
-                $token = bin2hex(random_bytes(32));
-                $expiryTimestamp = time() + (30 * 24 * 60 * 60);
-                $expiry = date(
-                    "Y-m-d H:i:s",
-                    $expiryTimestamp
-                );
-                $saved = $userDAO->saveRememberToken(
-                    $user->id,
-                    $token,
-                    $expiry
-                );
-                if (!$saved) {
-                    $error = "Không thể lưu Remember Token.";
-                } else {
-                    setcookie(
-                        "remember_token",
-                        $token,
-                        [
-                            "expires" => $expiryTimestamp,
-                            "path" => "/",
-                            "secure" => false,
-                            "httponly" => true,
-                            "samesite" => "Lax"
-                        ]
-                    );
-                }
-            }
-        }
-    }
-}
+$error = $error ?? "";
+$errors = $errors ?? ["username" => "", "password" => ""];
+$username = $username ?? "";
 ?>
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="vi">
 
@@ -128,6 +42,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         <h3 class="text-center mb-4">
                             Đăng nhập quản trị
                         </h3>
+
                         <?php if ($error !== ""): ?>
 
                             <div class="alert alert-danger">
@@ -136,14 +51,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                         <?php endif; ?>
 
-
                         <form
-                            action="login.php"
+                            action="/MiniShop_NguyenDinhDoan/index.php?area=admin&controller=auth&action=login"
                             method="POST">
+
                             <input
                                 type="hidden"
                                 name="csrf_token"
-                                value="<?= htmlspecialchars($_SESSION["csrf_token"]) ?>">
+                                value="<?= htmlspecialchars($_SESSION["csrf_token"] ?? "") ?>">
+
                             <div class="mb-3">
 
                                 <label class="form-label">
@@ -167,6 +83,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                 <?php endif; ?>
 
                             </div>
+
                             <div class="mb-3">
 
                                 <label class="form-label">
@@ -189,6 +106,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                 <?php endif; ?>
 
                             </div>
+
                             <div class="mb-3 form-check">
 
                                 <input
@@ -204,6 +122,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                 </label>
 
                             </div>
+
                             <div class="d-grid">
 
                                 <button

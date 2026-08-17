@@ -221,7 +221,7 @@ ob_start();
                             <?php if (!empty($item->image)): ?>
 
                                 <img
-                                    src="/MiniShop_NguyenDinhDoan/uploads/products/<?= htmlspecialchars($item->image) ?>"
+                                    src="/MiniShop_NguyenDinhDoan/uploads/<?= htmlspecialchars($item->image) ?>"
                                     width="80"
                                     height="80"
                                     class="img-thumbnail"

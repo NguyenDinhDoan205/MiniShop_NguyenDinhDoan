@@ -1,27 +1,18 @@
 <?php
+if (!defined('APP_ENTRY')) {
+    header("Location: /MiniShop_NguyenDinhDoan/admin/login");
+    exit;
+}
 
-require_once "../../../middleware/RoleMiddleware.php";
+$pageTitle = $pageTitle ?? "Chi tiết sản phẩm";
+$product = $product ?? null;
+$gallery = $gallery ?? [];
 
-RoleMiddleware::requireRole(1);
-
-require_once "../../../dao/ProductDAO.php";
-
-$pageTitle = "Chi tiết sản phẩm";
-
-$productDAO = new ProductDAO();
-
-$id = isset($_GET["id"]) ? (int)$_GET["id"] : 0;
-
-$product = $productDAO->findById($id);
-
-if ($product == null) {
+if ($product === null) {
     die("Không tìm thấy sản phẩm.");
 }
 
-$gallery = $productDAO->getImagesByProductId($product->id);
-
 ob_start();
-
 ?>
 
 <h2 class="mb-4">Chi Tiết Sản Phẩm</h2>
@@ -98,7 +89,7 @@ ob_start();
                     <?php if (!empty($product->image)): ?>
 
                         <img
-                            src="../../../uploads/<?= htmlspecialchars($product->image) ?>"
+                            src="/MiniShop_NguyenDinhDoan/uploads/<?= htmlspecialchars($product->image) ?>"
                             width="150"
                             class="img-thumbnail">
 
@@ -125,7 +116,7 @@ ob_start();
                             <?php foreach ($gallery as $item): ?>
 
                                 <img
-                                    src="../../../uploads/products/<?= htmlspecialchars($item["image"]) ?>"
+                                    src="/MiniShop_NguyenDinhDoan/uploads/<?= htmlspecialchars($item["image"]) ?>"
                                     width="120"
                                     height="120"
                                     class="img-thumbnail"
@@ -194,8 +185,8 @@ ob_start();
 
         </table>
 
-        <a
-            href="edit.php?id=<?= $product->id ?>"
+        
+           <a href="/MiniShop_NguyenDinhDoan/admin/product/edit/<?= $product->id ?>"
             class="btn btn-warning">
 
             <i class="bi bi-pencil-square"></i>
@@ -203,8 +194,8 @@ ob_start();
 
         </a>
 
-        <a
-            href="index.php"
+        
+            <a href="/MiniShop_NguyenDinhDoan/admin/product"
             class="btn btn-secondary">
 
             <i class="bi bi-arrow-left"></i>
@@ -220,6 +211,4 @@ ob_start();
 
 $content = ob_get_clean();
 
-include "../layouts/master.php";
-
-?>
+require __DIR__ . "/../layouts/master.php";

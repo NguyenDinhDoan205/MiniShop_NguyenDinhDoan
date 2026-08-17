@@ -27,7 +27,7 @@ $user = $_SESSION["user"] ?? null;
                 <div class="fw-bold"><?= htmlspecialchars($user->fullname) ?></div>
             </div>
             
-            <a href="/MiniShop_NguyenDinhDoan/views/admin/logout.php"
+           <a href="/MiniShop_NguyenDinhDoan/index.php?area=admin&controller=auth&action=logout"
                class="btn btn-sm btn-outline-light ms-2">
                 <i class="bi bi-box-arrow-right"></i> Đăng xuất
             </a>

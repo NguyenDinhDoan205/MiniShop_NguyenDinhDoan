@@ -1,157 +1,14 @@
 <?php
-
-require_once "../../../middleware/RoleMiddleware.php";
-
-RoleMiddleware::requireRole(1);
-
-require_once "../../../models/User.php";
-require_once "../../../dao/ProductDAO.php";
-require_once "../../../dao/CategoryDAO.php";
-require_once "../../../dao/BrandDAO.php";
-require_once "../../../models/Product.php";
-require_once "../../../middleware/CsrfMiddleware.php";
-
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+if (!defined('APP_ENTRY')) {
+    header("Location: /MiniShop_NguyenDinhDoan/admin/login");
+    exit;
 }
 
-$pageTitle = "Thêm sản phẩm";
-
-$productDAO = new ProductDAO();
-$categoryDAO = new CategoryDAO();
-$brandDAO = new BrandDAO();
-
-$categories = $categoryDAO->getAll();
-$brands = $brandDAO->getAll();
-
-$error = "";
-$success = "";
-
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-
-
-    CsrfMiddleware::verify();
-
-    $categoryId = (int)($_POST["category_id"] ?? 0);
-    $brandId = (int)($_POST["brand_id"] ?? 0);
-
-    $proname = trim($_POST["proname"] ?? "");
-
-    $price = (float)($_POST["price"] ?? 0);
-    $discountPrice = (float)($_POST["discount_price"] ?? 0);
-    $quantity = (int)($_POST["quantity"] ?? 0);
-    $description = trim($_POST["description"] ?? "");
-    $status = (int)($_POST["status"] ?? 1);
-
-    $slug = strtolower(trim($proname));
-    $slug = preg_replace('/[^a-zA-Z0-9]+/', '-', $slug);
-    $slug = trim($slug, '-');
-    $slug .= "-" . time();
-
-    if ($proname == "") {
-
-        $error = "Tên sản phẩm không được để trống.";
-    } elseif ($categoryId <= 0) {
-
-        $error = "Vui lòng chọn danh mục.";
-    } elseif ($brandId <= 0) {
-
-        $error = "Vui lòng chọn thương hiệu.";
-    } elseif ($price <= 0) {
-
-        $error = "Giá sản phẩm phải lớn hơn 0.";
-    } elseif ($quantity < 0) {
-
-        $error = "Số lượng không hợp lệ.";
-    }
-
-    $image = "";
-
-    if ($error == "") {
-
-        if (
-            isset($_FILES["image"]) &&
-            $_FILES["image"]["error"] == 0
-        ) {
-
-            $uploadDir = "../../../uploads/";
-
-            $imageName = time() . "_" .
-                basename($_FILES["image"]["name"]);
-
-            $target = $uploadDir . $imageName;
-
-            if (
-                move_uploaded_file(
-                    $_FILES["image"]["tmp_name"],
-                    $target
-                )
-            ) {
-
-                $image = $imageName;
-            }
-        }
-    }
-
-    if ($error == "") {
-
-        $product = new Product(
-            $categoryId,
-            $brandId,
-            $proname,
-            $slug,
-            $price,
-            $discountPrice,
-            $quantity,
-            $image,
-            $description,
-            $status
-        );
-
-        $productId = $productDAO->insert($product);
-
-        if ($productId > 0) {
-
-            if (isset($_FILES["images"])) {
-
-                $uploadDir = "../../../uploads/";
-
-                foreach ($_FILES["images"]["name"] as $key => $name) {
-
-                    if ($_FILES["images"]["error"][$key] != 0) {
-                        continue;
-                    }
-
-                    $imageName =
-                        time() . "_" .
-                        $key . "_" .
-                        basename($name);
-
-                    $target = $uploadDir . $imageName;
-
-                    if (
-                        move_uploaded_file(
-                            $_FILES["images"]["tmp_name"][$key],
-                            $target
-                        )
-                    ) {
-
-                        $productDAO->insertImage(
-                            $productId,
-                            $imageName
-                        );
-                    }
-                }
-            }
-
-            header("Location: index.php?success=1");
-            exit;
-        } else {
-
-            $error = "Không thể thêm sản phẩm.";
-        }
-    }
-}
+$pageTitle  = $pageTitle ?? "Thêm sản phẩm";
+$categories = $categories ?? [];
+$brands     = $brands ?? [];
+$error      = $error ?? "";
+$postData   = $postData ?? [];
 
 ob_start();
 ?>
@@ -176,13 +33,15 @@ ob_start();
 
         <?php endif; ?>
 
-        <form action="create.php" method="POST">
+        <form
+            action="/MiniShop_NguyenDinhDoan/admin/product/create"
+            method="POST"
+            enctype="multipart/form-data">
 
             <input
                 type="hidden"
                 name="csrf_token"
-                value="<?= htmlspecialchars($_SESSION["csrf_token"]) ?>">
-
+                value="<?= htmlspecialchars($_SESSION["csrf_token"] ?? "") ?>">
 
             <div class="row">
 
@@ -206,8 +65,8 @@ ob_start();
                             <option
                                 value="<?= $category->id ?>"
                                 <?= (
-                                    isset($_POST["category_id"]) &&
-                                    $_POST["category_id"] == $category->id
+                                    isset($postData["category_id"]) &&
+                                    $postData["category_id"] == $category->id
                                 ) ? "selected" : "" ?>>
 
                                 <?= htmlspecialchars($category->catename) ?>
@@ -240,8 +99,8 @@ ob_start();
                             <option
                                 value="<?= $brand->id ?>"
                                 <?= (
-                                    isset($_POST["brand_id"]) &&
-                                    $_POST["brand_id"] == $brand->id
+                                    isset($postData["brand_id"]) &&
+                                    $postData["brand_id"] == $brand->id
                                 ) ? "selected" : "" ?>>
 
                                 <?= htmlspecialchars($brand->brandname) ?>
@@ -253,6 +112,7 @@ ob_start();
                     </select>
 
                 </div>
+
                 <div class="col-md-12 mb-3">
 
                     <label class="form-label">
@@ -263,7 +123,7 @@ ob_start();
                         type="text"
                         name="proname"
                         class="form-control"
-                        value="<?= htmlspecialchars($_POST["proname"] ?? "") ?>"
+                        value="<?= htmlspecialchars($postData["proname"] ?? "") ?>"
                         required>
 
                 </div>
@@ -280,7 +140,7 @@ ob_start();
                         class="form-control"
                         min="0"
                         step="1000"
-                        value="<?= htmlspecialchars($_POST["price"] ?? "") ?>"
+                        value="<?= htmlspecialchars($postData["price"] ?? "") ?>"
                         required>
 
                 </div>
@@ -297,7 +157,7 @@ ob_start();
                         class="form-control"
                         min="0"
                         step="1000"
-                        value="<?= htmlspecialchars($_POST["discount_price"] ?? "0") ?>">
+                        value="<?= htmlspecialchars($postData["discount_price"] ?? "0") ?>">
 
                 </div>
 
@@ -312,7 +172,7 @@ ob_start();
                         name="quantity"
                         class="form-control"
                         min="0"
-                        value="<?= htmlspecialchars($_POST["quantity"] ?? "0") ?>">
+                        value="<?= htmlspecialchars($postData["quantity"] ?? "0") ?>">
 
                 </div>
 
@@ -337,6 +197,7 @@ ob_start();
                     </select>
 
                 </div>
+
                 <div class="col-md-12 mb-3">
 
                     <label class="form-label">
@@ -419,12 +280,11 @@ ob_start();
                     <textarea
                         name="description"
                         class="form-control"
-                        rows="5"><?= htmlspecialchars($_POST["description"] ?? "") ?></textarea>
+                        rows="5"><?= htmlspecialchars($postData["description"] ?? "") ?></textarea>
 
                 </div>
 
             </div>
-
 
             <div class="text-end">
 
@@ -437,8 +297,8 @@ ob_start();
 
                 </button>
 
-                <a
-                    href="index.php"
+                
+                    href="/MiniShop_NguyenDinhDoan/admin/product"
                     class="btn btn-secondary">
 
                     <i class="bi bi-arrow-left"></i>
@@ -454,46 +314,31 @@ ob_start();
 
 </div>
 
-
 <script>
     document
         .getElementById("mainImage")
         .addEventListener("change", function() {
 
             const file = this.files[0];
-
-            const preview =
-                document.getElementById("mainPreview");
-
-            const noImage =
-                document.getElementById("mainNoImage");
+            const preview = document.getElementById("mainPreview");
+            const noImage = document.getElementById("mainNoImage");
 
             if (file) {
 
-                const reader =
-                    new FileReader();
+                const reader = new FileReader();
 
                 reader.onload = function(e) {
-
-                    preview.src =
-                        e.target.result;
-
-                    preview.style.display =
-                        "block";
-
-                    noImage.style.display =
-                        "none";
+                    preview.src = e.target.result;
+                    preview.style.display = "block";
+                    noImage.style.display = "none";
                 };
 
                 reader.readAsDataURL(file);
 
             } else {
 
-                preview.style.display =
-                    "none";
-
-                noImage.style.display =
-                    "block";
+                preview.style.display = "none";
+                noImage.style.display = "block";
             }
 
         });
@@ -502,9 +347,7 @@ ob_start();
         .getElementById("galleryImages")
         .addEventListener("change", function() {
 
-            const preview =
-                document.getElementById("galleryPreview");
-
+            const preview = document.getElementById("galleryPreview");
             preview.innerHTML = "";
 
             const files = this.files;
@@ -512,28 +355,15 @@ ob_start();
             for (let i = 0; i < files.length; i++) {
 
                 const file = files[i];
-
-                const reader =
-                    new FileReader();
+                const reader = new FileReader();
 
                 reader.onload = function(e) {
-
-                    const img =
-                        document.createElement("img");
-
-                    img.src =
-                        e.target.result;
-
+                    const img = document.createElement("img");
+                    img.src = e.target.result;
                     img.width = 120;
-
                     img.height = 120;
-
-                    img.style.objectFit =
-                        "cover";
-
-                    img.className =
-                        "img-thumbnail";
-
+                    img.style.objectFit = "cover";
+                    img.className = "img-thumbnail";
                     preview.appendChild(img);
                 };
 
@@ -543,10 +373,8 @@ ob_start();
         });
 </script>
 
-
 <?php
 
 $content = ob_get_clean();
 
-include "../layouts/master.php";
-?>
+require __DIR__ . "/../layouts/master.php";

@@ -2,7 +2,6 @@
 
 namespace Middleware;
 
-
 class GuestMiddleware
 {
     public static function handle()
@@ -10,8 +9,9 @@ class GuestMiddleware
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-        if (isset($_SESSION["user"])) {
-            header("Location: dashboard.php");
+
+       if (isset($_SESSION["user"])) {
+            header("Location: /MiniShop_NguyenDinhDoan/index.php?area=admin&controller=product&action=index");
             exit;
         }
     }

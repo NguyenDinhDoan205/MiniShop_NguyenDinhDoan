@@ -47,33 +47,42 @@ class ProductDAO extends BaseDAO
         return $list;
     }
 
-    public function count(
-        string $table,
-        string $column = "",
-        string $keyword = ""
-    ): int {
+   public function count(
+    string $table,
+    string $column = "",
+    string $keyword = ""
+): int {
+    $sql = "SELECT COUNT(*) FROM `$table`";
 
-        $sql = "SELECT COUNT(*) AS total FROM {$table}";
+    $params = [];
+    $types = "";
 
-        if ($keyword !== "") {
-            $sql .= " WHERE {$column} LIKE ?";
-        }
+    if ($keyword !== "" && $column !== "") {
+        $sql .= " WHERE `$column` LIKE ?";
 
-        $stmt = $this->conn->prepare($sql);
-
-        if ($keyword !== "") {
-            $search = "%" . $keyword . "%";
-            $stmt->bind_param("s", $search);
-        }
-
-        $stmt->execute();
-
-        $result = $stmt->get_result();
-
-        $row = $result->fetch_assoc();
-
-        return (int)($row["total"] ?? 0);
+        $params[] = "%" . $keyword . "%";
+        $types .= "s";
     }
+
+    $stmt = $this->conn->prepare($sql);
+
+    if (!$stmt) {
+        throw new Exception(
+            "Lỗi prepare SQL: " . $this->conn->error
+        );
+    }
+
+    if (!empty($params)) {
+        $stmt->bind_param($types, ...$params);
+    }
+
+    $stmt->execute();
+
+    $result = $stmt->get_result();
+    $row = $result->fetch_row();
+
+    return (int)$row[0];
+}
 
     public function latest(int $limit = 5): array
     {

@@ -1,45 +1,33 @@
 <?php
 
-require_once __DIR__ . "/../models/User.php";
-require_once __DIR__ . "/RememberMeMiddleware.php";
+namespace Middleware;
 
 class RoleMiddleware
 {
-    public static function requireRole(int $requiredRole)
+    public static function requireRole(int $requiredRole): void
     {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-        RememberMeMiddleware::handle();
+
         if (!isset($_SESSION["user"])) {
-
-            header(
-                "Location: /MiniShop_NguyenDinhDoan/views/admin/login.php"
-            );
-
+            header("Location: /MiniShop_NguyenDinhDoan/index.php?controller=auth&action=login");
             exit;
         }
 
         $user = $_SESSION["user"];
 
-        if (!($user instanceof User)) {
+        $role = 0;
 
-            unset($_SESSION["user"]);
-
-            header(
-                "Location: /MiniShop_NguyenDinhDoan/views/admin/login.php"
-            );
-
-            exit;
+        if (is_object($user)) {
+            $role = (int)($user->role ?? 0);
+        } elseif (is_array($user)) {
+            $role = (int)($user["role"] ?? 0);
         }
 
-        if ((int)$user->role !== $requiredRole) {
-
-            header(
-                "Location: /MiniShop_NguyenDinhDoan/views/admin/403.php"
-            );
-
-            exit;
+        if ($role !== $requiredRole) {
+            http_response_code(403);
+            die("Bạn không có quyền truy cập!");
         }
     }
 }
