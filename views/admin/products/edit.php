@@ -1,331 +1,58 @@
 <?php
 
-require_once "../../../middleware/RoleMiddleware.php";
-
-RoleMiddleware::requireRole(1);
-require_once "../../../models/User.php";
-require_once "../../../dao/ProductDAO.php";
-require_once "../../../dao/CategoryDAO.php";
-require_once "../../../dao/BrandDAO.php";
-require_once "../../../middleware/CsrfMiddleware.php";
-
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-CsrfMiddleware::generateToken();
-
-$productDAO = new ProductDAO();
-$categoryDAO = new CategoryDAO();
-$brandDAO = new BrandDAO();
-
-$pageTitle = "Cập nhật sản phẩm";
-
-$id = isset($_GET["id"]) ? (int)$_GET["id"] : 0;
-
-$product = $productDAO->findById($id);
-
-if ($product == null) {
-    die("Không tìm thấy sản phẩm.");
-}
-
-/*
-|--------------------------------------------------------------------------
-| Lấy dữ liệu
-|--------------------------------------------------------------------------
-*/
-
-$gallery = $productDAO->getImagesByProductId($product->id);
-
-$categories = $categoryDAO->getAll();
-$brands = $brandDAO->getAll();
-
-$errors = [];
-
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-
-    CsrfMiddleware::verify();
-
-    $product->categoryId = (int)($_POST["categoryId"] ?? 0);
-    $product->brandId = (int)($_POST["brandId"] ?? 0);
-
-    $product->proname = trim($_POST["proname"] ?? "");
-    $product->slug = trim($_POST["slug"] ?? "");
-
-    $product->price = (float)($_POST["price"] ?? 0);
-    $product->discountPrice = (float)($_POST["discountPrice"] ?? 0);
-
-    $product->quantity = (int)($_POST["quantity"] ?? 0);
-
-    $product->description = trim($_POST["description"] ?? "");
-
-    $product->status = (int)($_POST["status"] ?? 1);
-
-
-    if ($product->categoryId <= 0) {
-        $errors["categoryId"] = "Vui lòng chọn danh mục.";
-    }
-
-    if ($product->brandId <= 0) {
-        $errors["brandId"] = "Vui lòng chọn thương hiệu.";
-    }
-
-    if ($product->proname === "") {
-        $errors["proname"] = "Tên sản phẩm không được để trống.";
-    }
-
-    if ($product->slug === "") {
-        $errors["slug"] = "Slug không được để trống.";
-    }
-
-    if ($product->price <= 0) {
-        $errors["price"] = "Giá phải lớn hơn 0.";
-    }
-
-    if ($product->discountPrice < 0) {
-        $errors["discountPrice"] = "Giá khuyến mãi không hợp lệ.";
-    }
-
-    if ($product->quantity < 0) {
-        $errors["quantity"] = "Số lượng không hợp lệ.";
-    }
-
-    if (
-        isset($_FILES["image"]) &&
-        $_FILES["image"]["error"] === UPLOAD_ERR_OK
-    ) {
-
-        $extension = strtolower(
-            pathinfo(
-                $_FILES["image"]["name"],
-                PATHINFO_EXTENSION
-            )
-        );
-
-        $allow = [
-            "jpg",
-            "jpeg",
-            "png",
-            "gif",
-            "webp"
-        ];
-
-        if (!in_array($extension, $allow)) {
-
-            $errors["image"] = "Ảnh không đúng định dạng.";
-
-        } else {
-
-            $filename =
-                time() . "_" .
-                basename($_FILES["image"]["name"]);
-
-            $uploadDir = "../../../uploads/";
-
-            if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0777, true);
-            }
-
-            $uploadFile = $uploadDir . $filename;
-
-            if (
-                move_uploaded_file(
-                    $_FILES["image"]["tmp_name"],
-                    $uploadFile
-                )
-            ) {
-
-
-                if (
-                    !empty($product->image) &&
-                    file_exists(
-                        $uploadDir . $product->image
-                    )
-                ) {
-
-                    unlink(
-                        $uploadDir . $product->image
-                    );
-                }
-
-                $product->image = $filename;
-
-            } else {
-
-                $errors["image"] =
-                    "Không thể tải ảnh lên.";
-            }
-        }
-    }
-
-
-    if (count($errors) === 0) {
-
-        if ($productDAO->update($product)) {
-
-            if (
-                isset($_FILES["images"]) &&
-                isset($_FILES["images"]["name"]) &&
-                is_array($_FILES["images"]["name"])
-            ) {
-
-                $uploadDir =
-                    "../../../uploads/products/";
-
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0777, true);
-                }
-
-                $allow = [
-                    "jpg",
-                    "jpeg",
-                    "png",
-                    "gif",
-                    "webp"
-                ];
-
-                foreach (
-                    $_FILES["images"]["name"]
-                    as $key => $name
-                ) {
-
-                    if (
-                        $_FILES["images"]["error"][$key]
-                        !== UPLOAD_ERR_OK
-                    ) {
-                        continue;
-                    }
-
-                    $extension = strtolower(
-                        pathinfo(
-                            $name,
-                            PATHINFO_EXTENSION
-                        )
-                    );
-
-                    if (!in_array($extension, $allow)) {
-                        continue;
-                    }
-
-                    $imageName =
-                        time() . "_" .
-                        $key . "_" .
-                        basename($name);
-
-                    $uploadFile =
-                        $uploadDir . $imageName;
-
-                    if (
-                        move_uploaded_file(
-                            $_FILES["images"]["tmp_name"][$key],
-                            $uploadFile
-                        )
-                    ) {
-
-                        $productDAO->insertImage(
-                            $product->id,
-                            $imageName
-                        );
-                    }
-                }
-            }
-
-            header("Location: index.php");
-            exit;
-
-        } else {
-
-            $errors["general"] =
-                "Cập nhật thất bại.";
-        }
-    }
-}
-
-
 ob_start();
 
 ?>
 
 <div class="container mt-4">
 
-    <div class="card shadow">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <h2>Chỉnh sửa sản phẩm</h2>
+
+        <a
+            href="/MiniShop_NguyenDinhDoan/index.php?controller=product&action=index"
+            class="btn btn-secondary">
+
+            <i class="bi bi-arrow-left"></i>
+            Quay lại
+
+        </a>
+
+    </div>
+
+
+    <?php if (!empty($errors["general"])): ?>
+
+        <div class="alert alert-danger">
+            <?= htmlspecialchars($errors["general"]) ?>
+        </div>
+
+    <?php endif; ?>
+
+
+    <div class="card">
 
         <div class="card-header bg-primary text-white">
 
-            <h4 class="mb-0">
-
-                <i class="bi bi-pencil-square"></i>
-
-                Cập nhật sản phẩm
-
-            </h4>
+            <h5 class="mb-0">
+                Cập nhật sản phẩm #<?= (int)$product->id ?>
+            </h5>
 
         </div>
 
 
         <div class="card-body">
 
-            <?php if (isset($errors["general"])): ?>
-
-                <div class="alert alert-danger">
-
-                    <?= htmlspecialchars(
-                        $errors["general"]
-                    ) ?>
-
-                </div>
-
-            <?php endif; ?>
-            <?php if (!empty($gallery)): ?>
-
-                <?php foreach ($gallery as $item): ?>
-
-                    <form
-                        id="delete-image-<?= (int)$item["id"] ?>"
-                        method="POST"
-                        action="delete_image.php"
-                    >
-
-                        <input
-                            type="hidden"
-                            name="image_id"
-                            value="<?= (int)$item["id"] ?>"
-                        >
-
-                        <input
-                            type="hidden"
-                            name="csrf_token"
-                            value="<?= htmlspecialchars(
-                                $_SESSION["csrf_token"]
-                            ) ?>"
-                        >
-
-                    </form>
-
-                <?php endforeach; ?>
-
-            <?php endif; ?>
-
             <form
                 method="POST"
-                action="edit.php?id=<?= $product->id ?>"
-                enctype="multipart/form-data"
-            >
-
-                <!-- CSRF -->
+                action="/MiniShop_NguyenDinhDoan/index.php?controller=product&action=edit&id=<?= (int)$product->id ?>"
+                enctype="multipart/form-data">
 
                 <input
                     type="hidden"
                     name="csrf_token"
-                    value="<?= htmlspecialchars(
-                        $_SESSION["csrf_token"]
-                    ) ?>"
-                >
-
-
-                <!-- ===================================================== -->
-                <!-- DANH MỤC -->
-                <!-- ===================================================== -->
+                    value="<?= htmlspecialchars($_SESSION["csrf_token"] ?? "") ?>">
 
                 <div class="mb-3">
 
@@ -335,25 +62,19 @@ ob_start();
 
                     <select
                         name="categoryId"
-                        class="form-select"
-                    >
+                        class="form-select">
 
                         <option value="">
                             -- Chọn danh mục --
                         </option>
 
-                        <?php foreach ($categories as $cate): ?>
+                        <?php foreach ($categories as $category): ?>
 
                             <option
-                                value="<?= $cate->id ?>"
-                                <?= $cate->id == $product->categoryId
-                                    ? "selected"
-                                    : "" ?>
-                            >
+                                value="<?= (int)$category->id ?>"
+                                <?= (int)$category->id == (int)$product->categoryId ? "selected" : "" ?>>
 
-                                <?= htmlspecialchars(
-                                    $cate->catename
-                                ) ?>
+                                <?= htmlspecialchars($category->catename) ?>
 
                             </option>
 
@@ -361,20 +82,15 @@ ob_start();
 
                     </select>
 
-                    <small class="text-danger">
+                    <?php if (!empty($errors["categoryId"])): ?>
 
-                        <?= htmlspecialchars(
-                            $errors["categoryId"] ?? ""
-                        ) ?>
+                        <div class="text-danger mt-1">
+                            <?= htmlspecialchars($errors["categoryId"]) ?>
+                        </div>
 
-                    </small>
+                    <?php endif; ?>
 
                 </div>
-
-
-                <!-- ===================================================== -->
-                <!-- THƯƠNG HIỆU -->
-                <!-- ===================================================== -->
 
                 <div class="mb-3">
 
@@ -384,8 +100,7 @@ ob_start();
 
                     <select
                         name="brandId"
-                        class="form-select"
-                    >
+                        class="form-select">
 
                         <option value="">
                             -- Chọn thương hiệu --
@@ -394,15 +109,10 @@ ob_start();
                         <?php foreach ($brands as $brand): ?>
 
                             <option
-                                value="<?= $brand->id ?>"
-                                <?= $brand->id == $product->brandId
-                                    ? "selected"
-                                    : "" ?>
-                            >
+                                value="<?= (int)$brand->id ?>"
+                                <?= (int)$brand->id == (int)$product->brandId ? "selected" : "" ?>>
 
-                                <?= htmlspecialchars(
-                                    $brand->brandname
-                                ) ?>
+                                <?= htmlspecialchars($brand->brandname) ?>
 
                             </option>
 
@@ -410,21 +120,15 @@ ob_start();
 
                     </select>
 
-                    <small class="text-danger">
+                    <?php if (!empty($errors["brandId"])): ?>
 
-                        <?= htmlspecialchars(
-                            $errors["brandId"] ?? ""
-                        ) ?>
+                        <div class="text-danger mt-1">
+                            <?= htmlspecialchars($errors["brandId"]) ?>
+                        </div>
 
-                    </small>
+                    <?php endif; ?>
 
                 </div>
-
-
-                <!-- ===================================================== -->
-                <!-- TÊN SẢN PHẨM -->
-                <!-- ===================================================== -->
-
                 <div class="mb-3">
 
                     <label class="form-label">
@@ -435,26 +139,17 @@ ob_start();
                         type="text"
                         name="proname"
                         class="form-control"
-                        value="<?= htmlspecialchars(
-                            $product->proname
-                        ) ?>"
-                    >
+                        value="<?= htmlspecialchars($product->proname ?? "") ?>">
 
-                    <small class="text-danger">
+                    <?php if (!empty($errors["proname"])): ?>
 
-                        <?= htmlspecialchars(
-                            $errors["proname"] ?? ""
-                        ) ?>
+                        <div class="text-danger mt-1">
+                            <?= htmlspecialchars($errors["proname"]) ?>
+                        </div>
 
-                    </small>
+                    <?php endif; ?>
 
                 </div>
-
-
-                <!-- ===================================================== -->
-                <!-- SLUG -->
-                <!-- ===================================================== -->
-
                 <div class="mb-3">
 
                     <label class="form-label">
@@ -465,25 +160,17 @@ ob_start();
                         type="text"
                         name="slug"
                         class="form-control"
-                        value="<?= htmlspecialchars(
-                            $product->slug
-                        ) ?>"
-                    >
+                        value="<?= htmlspecialchars($product->slug ?? "") ?>">
 
-                    <small class="text-danger">
+                    <?php if (!empty($errors["slug"])): ?>
 
-                        <?= htmlspecialchars(
-                            $errors["slug"] ?? ""
-                        ) ?>
+                        <div class="text-danger mt-1">
+                            <?= htmlspecialchars($errors["slug"]) ?>
+                        </div>
 
-                    </small>
+                    <?php endif; ?>
 
                 </div>
-
-
-                <!-- ===================================================== -->
-                <!-- GIÁ -->
-                <!-- ===================================================== -->
 
                 <div class="row">
 
@@ -499,16 +186,15 @@ ob_start();
                                 type="number"
                                 name="price"
                                 class="form-control"
-                                value="<?= $product->price ?>"
-                            >
+                                value="<?= htmlspecialchars($product->price ?? 0) ?>">
 
-                            <small class="text-danger">
+                            <?php if (!empty($errors["price"])): ?>
 
-                                <?= htmlspecialchars(
-                                    $errors["price"] ?? ""
-                                ) ?>
+                                <div class="text-danger mt-1">
+                                    <?= htmlspecialchars($errors["price"]) ?>
+                                </div>
 
-                            </small>
+                            <?php endif; ?>
 
                         </div>
 
@@ -527,28 +213,21 @@ ob_start();
                                 type="number"
                                 name="discountPrice"
                                 class="form-control"
-                                value="<?= $product->discountPrice ?>"
-                            >
+                                value="<?= htmlspecialchars($product->discountPrice ?? 0) ?>">
 
-                            <small class="text-danger">
+                            <?php if (!empty($errors["discountPrice"])): ?>
 
-                                <?= htmlspecialchars(
-                                    $errors["discountPrice"] ?? ""
-                                ) ?>
+                                <div class="text-danger mt-1">
+                                    <?= htmlspecialchars($errors["discountPrice"]) ?>
+                                </div>
 
-                            </small>
+                            <?php endif; ?>
 
                         </div>
 
                     </div>
 
                 </div>
-
-
-                <!-- ===================================================== -->
-                <!-- SỐ LƯỢNG -->
-                <!-- ===================================================== -->
-
                 <div class="mb-3">
 
                     <label class="form-label">
@@ -559,109 +238,117 @@ ob_start();
                         type="number"
                         name="quantity"
                         class="form-control"
-                        value="<?= $product->quantity ?>"
-                    >
+                        value="<?= htmlspecialchars($product->quantity ?? 0) ?>">
 
-                    <small class="text-danger">
+                    <?php if (!empty($errors["quantity"])): ?>
 
-                        <?= htmlspecialchars(
-                            $errors["quantity"] ?? ""
-                        ) ?>
-
-                    </small>
-
-                </div>
-
-
-                <!-- ===================================================== -->
-                <!-- ẢNH CHÍNH -->
-                <!-- ===================================================== -->
-
-                <div class="mb-3">
-
-                    <label class="form-label">
-                        Hình ảnh hiện tại
-                    </label>
-
-                    <br>
-
-                    <?php if (!empty($product->image)): ?>
-
-                        <img
-                            src="../../../uploads/<?= htmlspecialchars(
-                                $product->image
-                            ) ?>"
-                            width="120"
-                            class="img-thumbnail mb-2"
-                        >
-
-                    <?php else: ?>
-
-                        <p class="text-muted">
-                            Chưa có ảnh
-                        </p>
+                        <div class="text-danger mt-1">
+                            <?= htmlspecialchars($errors["quantity"]) ?>
+                        </div>
 
                     <?php endif; ?>
+
+                </div>
+                <div class="mb-4">
+
+                    <label class="form-label">
+                        <strong>Ảnh sản phẩm</strong>
+                    </label>
+
+                    <div class="mb-3">
+
+                        <?php if (!empty($product->image)): ?>
+
+                            <img
+                                id="mainImagePreview"
+                                src="/MiniShop_NguyenDinhDoan/uploads/<?= htmlspecialchars($product->image) ?>"
+                                width="180"
+                                height="180"
+                                class="img-thumbnail"
+                                style="object-fit: cover;">
+
+                        <?php else: ?>
+
+                            <img
+                                id="mainImagePreview"
+                                src=""
+                                width="180"
+                                height="180"
+                                class="img-thumbnail"
+                                style="display:none; object-fit:cover;">
+
+                            <p
+                                id="noMainImage"
+                                class="text-muted">
+
+                                Chưa có ảnh
+
+                            </p>
+
+                        <?php endif; ?>
+
+                    </div>
 
 
                     <input
                         type="file"
                         name="image"
+                        id="mainImageInput"
                         class="form-control"
-                        accept="image/*"
-                    >
+                        accept="image/jpeg,image/png,image/webp,image/gif">
 
-                    <small class="text-danger">
+                    <small class="text-muted">
 
-                        <?= htmlspecialchars(
-                            $errors["image"] ?? ""
-                        ) ?>
+                        JPG, PNG, WEBP, GIF - tối đa 5MB
 
                     </small>
 
+
+                    <?php if (!empty($errors["image"])): ?>
+
+                        <div class="text-danger mt-1">
+                            <?= htmlspecialchars($errors["image"]) ?>
+                        </div>
+
+                    <?php endif; ?>
+
                 </div>
 
-
-                <!-- ===================================================== -->
-                <!-- THÊM ẢNH PHỤ -->
-                <!-- ===================================================== -->
-
-                <div class="mb-3">
+                <div class="mb-4">
 
                     <label class="form-label">
-                        Thêm hình ảnh phụ
+
+                        <strong>Thêm hình ảnh phụ</strong>
+
                     </label>
 
                     <input
                         type="file"
                         name="images[]"
+                        id="imagesInput"
                         class="form-control"
                         multiple
-                        accept="image/*"
-                    >
+                        accept="image/jpeg,image/png,image/webp,image/gif">
 
                     <small class="text-muted">
+
                         Có thể chọn nhiều hình ảnh.
+
                     </small>
 
                 </div>
 
 
-                <!-- ===================================================== -->
-                <!-- HÌNH ẢNH PHỤ HIỆN TẠI -->
-                <!-- ===================================================== -->
-                <!--
-                    VẪN NẰM ĐÚNG VỊ TRÍ CŨ.
-                    Không có form lồng nhau.
-                -->
+                <div
+                    id="newImagesPreview"
+                    class="d-flex flex-wrap gap-3 mb-4">
+                </div>
 
-                <div class="mb-3">
+                <div class="mb-4">
 
                     <label class="form-label">
 
-                        <strong>
-                            Hình ảnh phụ hiện tại
-                        </strong>
+                        <strong>Hình ảnh phụ hiện tại</strong>
 
                     </label>
 
@@ -674,44 +361,41 @@ ob_start();
 
                                 <div
                                     class="text-center border rounded p-2"
-                                >
-
-                                    <!-- ẢNH -->
+                                    style="width:150px;">
 
                                     <img
-                                        src="../../../uploads/products/<?= htmlspecialchars(
-                                            $item["image"]
-                                        ) ?>"
+                                        src="/MiniShop_NguyenDinhDoan/uploads/<?= htmlspecialchars($item["image"] ?? "") ?>"
                                         width="120"
                                         height="120"
                                         class="img-thumbnail mb-2"
-                                        style="object-fit: cover;"
-                                    >
+                                        style="object-fit:cover;">
 
 
-                                    <br>
+                                    <form
+                                        method="POST"
+                                        action="/MiniShop_NguyenDinhDoan/index.php?controller=product&action=deleteImage"
+                                        onsubmit="return confirm('Bạn có chắc muốn xóa ảnh này không?');">
 
+                                        <input
+                                            type="hidden"
+                                            name="image_id"
+                                            value="<?= (int)$item["id"] ?>">
 
-                                    <!--
-                                        NÚT XÓA
+                                        <input
+                                            type="hidden"
+                                            name="csrf_token"
+                                            value="<?= htmlspecialchars($_SESSION["csrf_token"] ?? "") ?>">
 
-                                        Nút này vẫn nằm ở đúng vị trí
-                                        nhưng submit form bên ngoài
-                                        thông qua thuộc tính form.
-                                    -->
+                                        <button
+                                            type="submit"
+                                            class="btn btn-danger btn-sm">
 
-                                    <button
-                                        type="submit"
-                                        form="delete-image-<?= (int)$item["id"] ?>"
-                                        class="btn btn-danger btn-sm"
-                                        onclick="return confirm('Bạn có chắc muốn xóa ảnh này không?');"
-                                    >
+                                            <i class="bi bi-trash"></i>
+                                            Xóa
 
-                                        <i class="bi bi-trash"></i>
+                                        </button>
 
-                                        Xóa
-
-                                    </button>
+                                    </form>
 
                                 </div>
 
@@ -731,11 +415,6 @@ ob_start();
 
                 </div>
 
-
-                <!-- ===================================================== -->
-                <!-- MÔ TẢ -->
-                <!-- ===================================================== -->
-
                 <div class="mb-3">
 
                     <label class="form-label">
@@ -745,19 +424,11 @@ ob_start();
                     <textarea
                         name="description"
                         rows="5"
-                        class="form-control"
-                    ><?= htmlspecialchars(
-                        $product->description
-                    ) ?></textarea>
+                        class="form-control"><?= htmlspecialchars($product->description ?? "") ?></textarea>
 
                 </div>
 
-
-                <!-- ===================================================== -->
-                <!-- TRẠNG THÁI -->
-                <!-- ===================================================== -->
-
-                <div class="mb-3">
+                <div class="mb-4">
 
                     <label class="form-label">
                         Trạng thái
@@ -771,13 +442,12 @@ ob_start();
                             type="radio"
                             name="status"
                             value="1"
-                            <?= $product->status == 1
-                                ? "checked"
-                                : "" ?>
-                        >
+                            <?= (int)$product->status === 1 ? "checked" : "" ?>>
 
                         <label class="form-check-label">
+
                             Hiển thị
+
                         </label>
 
                     </div>
@@ -790,43 +460,32 @@ ob_start();
                             type="radio"
                             name="status"
                             value="0"
-                            <?= $product->status == 0
-                                ? "checked"
-                                : "" ?>
-                        >
+                            <?= (int)$product->status === 0 ? "checked" : "" ?>>
 
                         <label class="form-check-label">
+
                             Ẩn
+
                         </label>
 
                     </div>
 
                 </div>
-
-
-                <!-- ===================================================== -->
-                <!-- BUTTON -->
-                <!-- ===================================================== -->
-
                 <button
                     type="submit"
-                    class="btn btn-primary"
-                >
+                    class="btn btn-primary">
 
                     <i class="bi bi-save"></i>
-
                     Cập nhật
 
                 </button>
 
 
                 <a
-                    href="index.php"
-                    class="btn btn-secondary"
-                >
+                    href="/MiniShop_NguyenDinhDoan/index.php?controller=product&action=index"
+                    class="btn btn-secondary">
 
                     <i class="bi bi-arrow-left"></i>
-
                     Quay lại
 
                 </a>
@@ -840,10 +499,107 @@ ob_start();
 </div>
 
 
+<script>
+
+document
+    .getElementById("mainImageInput")
+    .addEventListener("change", function () {
+
+        const file = this.files[0];
+
+        if (!file) {
+            return;
+        }
+
+        if (!file.type.startsWith("image/")) {
+
+            alert("Vui lòng chọn file hình ảnh.");
+
+            this.value = "";
+
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+
+            alert("Ảnh không được vượt quá 5MB.");
+
+            this.value = "";
+
+            return;
+        }
+
+        const preview =
+            document.getElementById("mainImagePreview");
+
+        const noImage =
+            document.getElementById("noMainImage");
+
+        preview.src =
+            URL.createObjectURL(file);
+
+        preview.style.display = "block";
+
+        if (noImage) {
+            noImage.style.display = "none";
+        }
+
+    });
+
+
+document
+    .getElementById("imagesInput")
+    .addEventListener("change", function () {
+
+        const preview =
+            document.getElementById("newImagesPreview");
+
+        preview.innerHTML = "";
+
+        const files = this.files;
+
+        for (let i = 0; i < files.length; i++) {
+
+            const file = files[i];
+
+            if (!file.type.startsWith("image/")) {
+                continue;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+
+                const div =
+                    document.createElement("div");
+
+                div.style.width = "120px";
+
+                div.innerHTML = `
+                    <img
+                        src="${e.target.result}"
+                        width="120"
+                        height="120"
+                        class="img-thumbnail"
+                        style="object-fit:cover;">
+                `;
+
+                preview.appendChild(div);
+
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+    });
+
+</script>
+
+
 <?php
 
 $content = ob_get_clean();
 
-include "../layouts/master.php";
+include __DIR__ . "/../layouts/master.php";
 
 ?>

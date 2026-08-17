@@ -10,16 +10,7 @@ class RoleMiddleware
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-
-        /*
-         * Nếu Session mất thì thử khôi phục
-         * bằng Cookie Remember Me
-         */
         RememberMeMiddleware::handle();
-
-        /*
-         * Không đăng nhập
-         */
         if (!isset($_SESSION["user"])) {
 
             header(
@@ -31,9 +22,6 @@ class RoleMiddleware
 
         $user = $_SESSION["user"];
 
-        /*
-         * Kiểm tra User object
-         */
         if (!($user instanceof User)) {
 
             unset($_SESSION["user"]);
@@ -45,9 +33,6 @@ class RoleMiddleware
             exit;
         }
 
-        /*
-         * Kiểm tra quyền
-         */
         if ((int)$user->role !== $requiredRole) {
 
             header(

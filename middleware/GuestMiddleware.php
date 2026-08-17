@@ -1,4 +1,8 @@
 <?php
+
+namespace Middleware;
+
+
 class GuestMiddleware
 {
     public static function handle()

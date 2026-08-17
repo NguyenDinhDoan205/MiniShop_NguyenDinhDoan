@@ -204,12 +204,7 @@ ob_start();
                         value="<?= htmlspecialchars($user->username) ?>"
                         placeholder="Nhập username"
                     >
-
                 </div>
-
-
-                <!-- PASSWORD -->
-
                 <div class="mb-3">
 
                     <label class="form-label">
@@ -235,9 +230,6 @@ ob_start();
 
                 </div>
 
-
-                <!-- EMAIL -->
-
                 <div class="mb-3">
 
                     <label class="form-label">
@@ -257,9 +249,6 @@ ob_start();
 
                 </div>
 
-
-                <!-- SỐ ĐIỆN THOẠI -->
-
                 <div class="mb-3">
 
                     <label class="form-label">
@@ -278,10 +267,6 @@ ob_start();
                     >
 
                 </div>
-
-
-                <!-- ĐỊA CHỈ -->
-
                 <div class="mb-3">
 
                     <label class="form-label">
@@ -299,13 +284,6 @@ ob_start();
                     ><?= htmlspecialchars($user->address) ?></textarea>
 
                 </div>
-
-
-                <!--
-                |--------------------------------------------------------------------------
-                | VAI TRÒ
-                |--------------------------------------------------------------------------
-                -->
 
                 <div class="mb-3">
 
@@ -348,13 +326,6 @@ ob_start();
 
                 </div>
 
-
-                <!--
-                |--------------------------------------------------------------------------
-                | TRẠNG THÁI
-                |--------------------------------------------------------------------------
-                -->
-
                 <div class="mb-3">
 
                     <label class="form-label">
@@ -395,13 +366,6 @@ ob_start();
                     </select>
 
                 </div>
-
-
-                <!--
-                |--------------------------------------------------------------------------
-                | BUTTON
-                |--------------------------------------------------------------------------
-                -->
 
                 <div class="mt-4">
 

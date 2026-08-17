@@ -1,13 +1,16 @@
 <?php
 
+namespace Config;
+use \mysqli;
+use \Exception;
+
 class Database
 {
     protected string $host = "localhost";
     protected string $database = "nguyendinhdoan_database"; 
     protected string $username = "root";
     protected string $password = "";
-
-    protected mysqli $conn;
+    protected mysqli $conn ;
 
     public function __construct()
     {
@@ -35,7 +38,7 @@ class Database
         }
     }
 
-    public function getConnection(): mysqli
+    public function getConnection(): ?mysqli
     {
         return $this->conn;
     }

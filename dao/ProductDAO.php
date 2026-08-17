@@ -1,6 +1,9 @@
 <?php
-require_once __DIR__ . "/BaseDAO.php";
-require_once __DIR__ . "/../models/Product.php";
+
+namespace DAO;
+use Models\Product;
+
+
 
 class ProductDAO extends BaseDAO
 {
@@ -44,6 +47,33 @@ class ProductDAO extends BaseDAO
 
         return $list;
     }
+    public function count(
+    string $table,
+    string $column = "",
+    string $keyword = ""
+): int {
+
+    $sql = "SELECT COUNT(*) AS total FROM {$table}";
+
+    if ($keyword !== "") {
+        $sql .= " WHERE {$column} LIKE ?";
+    }
+
+    $stmt = $this->conn->prepare($sql);
+
+    if ($keyword !== "") {
+        $search = "%" . $keyword . "%";
+        $stmt->bind_param("s", $search);
+    }
+
+    $stmt->execute();
+
+    $result = $stmt->get_result();
+
+    $row = $result->fetch_assoc();
+
+    return (int)($row["total"] ?? 0);
+}
     public function latest(int $limit = 5): array
     {
         $list = [];
@@ -218,12 +248,9 @@ class ProductDAO extends BaseDAO
 
     public function delete($id)
     {
-        // Bắt đầu transaction
         $this->conn->begin_transaction();
 
         try {
-
-            // 1. Xóa chi tiết đơn hàng liên quan đến sản phẩm
             $sqlOrderDetail = "DELETE FROM order_details WHERE product_id = ?";
 
             $stmtOrderDetail = $this->conn->prepare($sqlOrderDetail);
@@ -235,9 +262,6 @@ class ProductDAO extends BaseDAO
             $stmtOrderDetail->bind_param("i", $id);
             $stmtOrderDetail->execute();
             $stmtOrderDetail->close();
-
-
-            // 2. Xóa hình ảnh liên quan đến sản phẩm
             $sqlImage = "DELETE FROM product_images WHERE product_id = ?";
 
             $stmtImage = $this->conn->prepare($sqlImage);
@@ -447,45 +471,43 @@ class ProductDAO extends BaseDAO
 
         return $stmt->execute();
     }
-   public function getPage(
-    int $limit,
-    int $offset,
-    string $keyword = "",
-    string $sort = "name_asc"
-) {
-    /*
-     * Xác định kiểu sắp xếp
-     */
-    switch ($sort) {
+    public function getPage(
+        int $limit,
+        int $offset,
+        string $keyword = "",
+        string $sort = "name_asc"
+    ) {
 
-        case "name_desc":
-            $orderBy = "p.proname DESC";
-            break;
+        switch ($sort) {
 
-        case "price_asc":
-            $orderBy = "p.price ASC";
-            break;
+            case "name_desc":
+                $orderBy = "p.proname DESC";
+                break;
 
-        case "price_desc":
-            $orderBy = "p.price DESC";
-            break;
+            case "price_asc":
+                $orderBy = "p.price ASC";
+                break;
 
-        case "quantity_asc":
-            $orderBy = "p.quantity ASC";
-            break;
+            case "price_desc":
+                $orderBy = "p.price DESC";
+                break;
 
-        case "quantity_desc":
-            $orderBy = "p.quantity DESC";
-            break;
+            case "quantity_asc":
+                $orderBy = "p.quantity ASC";
+                break;
 
-        case "name_asc":
-        default:
-            $orderBy = "p.proname ASC";
-            break;
-    }
+            case "quantity_desc":
+                $orderBy = "p.quantity DESC";
+                break;
+
+            case "name_asc":
+            default:
+                $orderBy = "p.proname ASC";
+                break;
+        }
 
 
-    $sql = "SELECT
+        $sql = "SELECT
                 p.id,
                 p.category_id,
                 p.brand_id,
@@ -517,64 +539,64 @@ class ProductDAO extends BaseDAO
             LIMIT ? OFFSET ?";
 
 
-    $stmt = $this->conn->prepare($sql);
+        $stmt = $this->conn->prepare($sql);
 
-    if (!$stmt) {
-        die("Lỗi SQL: " . $this->conn->error);
-    }
-
-
-    $keyword = "%$keyword%";
+        if (!$stmt) {
+            die("Lỗi SQL: " . $this->conn->error);
+        }
 
 
-    $stmt->bind_param(
-        "sii",
-        $keyword,
-        $limit,
-        $offset
-    );
+        $keyword = "%$keyword%";
 
 
-    $stmt->execute();
-
-
-    $result = $stmt->get_result();
-
-
-    $products = [];
-
-
-    while ($row = $result->fetch_assoc()) {
-
-        $product = new Product(
-            (int)$row["category_id"],
-            (int)$row["brand_id"],
-            $row["proname"],
-            $row["slug"],
-            (float)$row["price"],
-            (float)$row["discount_price"],
-            (int)$row["quantity"],
-            $row["image"],
-            $row["description"],
-            (int)$row["status"]
+        $stmt->bind_param(
+            "sii",
+            $keyword,
+            $limit,
+            $offset
         );
 
 
-        $product->id = (int)$row["id"];
-
-        $product->catename = $row["catename"];
-
-        $product->brandname = $row["brandname"];
-
-        $product->createdAt = $row["created_at"];
-
-        $product->updatedAt = $row["updated_at"];
+        $stmt->execute();
 
 
-        $products[] = $product;
+        $result = $stmt->get_result();
+
+
+        $products = [];
+
+
+        while ($row = $result->fetch_assoc()) {
+
+            $product = new Product(
+                (int)$row["category_id"],
+                (int)$row["brand_id"],
+                $row["proname"],
+                $row["slug"],
+                (float)$row["price"],
+                (float)$row["discount_price"],
+                (int)$row["quantity"],
+                $row["image"],
+                $row["description"],
+                (int)$row["status"]
+            );
+
+
+            $product->id = (int)$row["id"];
+
+            $product->catename = $row["catename"];
+
+            $product->brandname = $row["brandname"];
+
+            $product->createdAt = $row["created_at"];
+
+            $product->updatedAt = $row["updated_at"];
+
+
+            $products[] = $product;
+        }
+
+
+        return $products;
     }
-
-
-    return $products;
-}
 }

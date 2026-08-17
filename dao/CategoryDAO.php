@@ -1,6 +1,7 @@
 <?php
-require_once __DIR__ . "/BaseDAO.php";
-require_once __DIR__ . "/../models/Category.php";
+namespace DAO;
+
+use Models\Category;
 
 class CategoryDAO extends BaseDAO
 {
